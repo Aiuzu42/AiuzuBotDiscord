@@ -7,25 +7,32 @@ import (
 	"syscall"
 
 	"github.com/aiuzu42/AiuzuBotDiscord/bot"
+	"github.com/aiuzu42/AiuzuBotDiscord/config"
+	"github.com/aiuzu42/AiuzuBotDiscord/version"
 	"github.com/bwmarrin/discordgo"
+	log "github.com/sirupsen/logrus"
 )
 
-func StartApp(token string) {
-	b, err := discordgo.New("Bot " + token)
+func StartApp() {
+	bot.LoadRoles()
+	b, err := discordgo.New("Bot " + config.Config.Token)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal(err.Error())
+	}
+	err = bot.SelectRepository(config.Config.DBConn.DBType)
+	if err != nil {
+		os.Exit(1)
 	}
 	b.AddHandler(bot.CommandsHandler)
+	b.AddHandler(bot.NewMemberHandler)
 	err = b.Open()
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		log.Fatal(err.Error())
 	}
-	fmt.Println("Discord bot is now running. Press CTRL-C to exit.")
+	fmt.Println("AiuzuBot Discord is now running. Version: " + version.Version)
+	log.Info("AiuzuBot Discord is now running. Version: " + version.Version)
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-
-	// Cleanly close down the Discord session.
 	b.Close()
 }

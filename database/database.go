@@ -1,13 +1,14 @@
 package database
 
-import "github.com/aiuzu42/AiuzuBotDiscord/models"
-
-const (
-	userNotFoundCode = 1
-	userAlredyExists = 2
+import (
+	"github.com/aiuzu42/AiuzuBotDiscord/config"
+	"github.com/aiuzu42/AiuzuBotDiscord/models"
 )
 
-type databse interface {
-	GetUser(userID string) (models.User, *models.AppError)
+type Databse interface {
+	InitDB(c config.DBConnection) *models.AppError
+	GetUser(userID string, username string) (models.User, *models.AppError)
 	AddUser(user models.User) *models.AppError
+	IncreaseMessageCount(userID string) *models.AppError
+	AddJoinDate(userID string, date string) *models.AppError
 }

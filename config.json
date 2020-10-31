@@ -1,0 +1,17 @@
+{
+    "server" : "",
+    "token" : "",
+    "dbConnection" : {
+        "type" : "",
+        "host" : "",
+        "port" : 0,
+        "db" : "",
+        "collection" : "",
+        "user" : "",
+        "pass" : "",
+        "options" : ""
+    },
+    "owners" : [],
+    "mods" : [],
+    "admins" : []
+}
