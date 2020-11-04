@@ -34,6 +34,7 @@ type Details struct {
 	AdminName string `bson:"adminName"`
 	Command   string `bson:"command"`
 	Date      string `bson:"date"`
+	Notes     string `bson:"notes"`
 }
 
 type ServerDetails struct {

@@ -45,3 +45,7 @@ func (m *Memory) IncreaseMessageCount(userID string) *models.AppError {
 func (m *Memory) AddJoinDate(userID string, date string) *models.AppError {
 	return nil
 }
+
+func (m *Memory) AddLeaveDate(userID string, date string) *models.AppError {
+	return nil
+}

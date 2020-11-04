@@ -25,6 +25,7 @@ func StartApp() {
 	}
 	b.AddHandler(bot.CommandsHandler)
 	b.AddHandler(bot.NewMemberHandler)
+	b.AddHandler(bot.MemberLeaveHandler)
 	err = b.Open()
 	if err != nil {
 		log.Fatal(err.Error())

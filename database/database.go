@@ -11,4 +11,5 @@ type Databse interface {
 	AddUser(user models.User) *models.AppError
 	IncreaseMessageCount(userID string) *models.AppError
 	AddJoinDate(userID string, date string) *models.AppError
+	AddLeaveDate(userID string, date string) *models.AppError
 }

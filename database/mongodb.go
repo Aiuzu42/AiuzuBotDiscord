@@ -120,3 +120,29 @@ func (m *MongoDB) AddJoinDate(userID string, date string) *models.AppError {
 	}
 	return nil
 }
+
+func (m *MongoDB) AddLeaveDate(userID string, date string) *models.AppError {
+	query := bson.M{
+		"userID": userID,
+	}
+	var found *mongo.SingleResult
+	found = m.collection.FindOne(context.TODO(), query)
+	if found.Err() != nil && found.Err() == mongo.ErrNoDocuments {
+		return &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
+	} else if found.Err() != nil {
+		log.Error(found.Err().Error())
+		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+	}
+	updateQuery := bson.D{
+		{
+			Key: "$push", Value: bson.D{
+				{Key: "server.leftDates", Value: date},
+			},
+		},
+	}
+	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	if err != nil {
+		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+	}
+	return nil
+}
