@@ -3,12 +3,16 @@ package bot
 import (
 	"time"
 
+	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"github.com/aiuzu42/AiuzuBotDiscord/models"
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 )
 
 func NewMemberHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
+	if m.GuildID != config.Config.Server {
+		return
+	}
 	_, appErr := repo.GetUser(m.Member.User.ID, "")
 	if appErr != nil && appErr.Code == models.UserAlredyExists {
 		appErr = repo.AddJoinDate(m.Member.User.ID, string(m.Member.JoinedAt))
@@ -32,8 +36,11 @@ func NewMemberHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 }
 
 func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
+	if m.GuildID != config.Config.Server {
+		return
+	}
 	msg := m.User.Username + "#" + m.User.Discriminator + " abandonó el servidor. ID: " + m.User.ID
-	_, err := s.ChannelMessageSend("740939599936880650", msg)
+	_, err := s.ChannelMessageSend(config.Config.FChannel, msg)
 	if err != nil {
 		log.Error("error in member leave event1" + err.Error())
 	}

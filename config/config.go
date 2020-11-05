@@ -10,12 +10,13 @@ import (
 )
 
 type configuration struct {
-	Server string       `json:"server"`
-	Token  string       `json:"token"`
-	DBConn DBConnection `json:"dbConnection"`
-	Owners []string     `json:"owners"`
-	Mods   []string     `json:"mods"`
-	Admins []string     `json:"admins"`
+	Server   string       `json:"server"`
+	Token    string       `json:"token"`
+	DBConn   DBConnection `json:"dbConnection"`
+	Owners   []string     `json:"owners"`
+	Mods     []string     `json:"mods"`
+	Admins   []string     `json:"admins"`
+	FChannel string       `json:"fChannel"`
 }
 
 type DBConnection struct {

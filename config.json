@@ -13,5 +13,6 @@
     },
     "owners" : [],
     "mods" : [],
-    "admins" : []
+    "admins" : [],
+    "fChannel" : ""
 }

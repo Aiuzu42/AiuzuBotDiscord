@@ -41,11 +41,10 @@ func (m *MongoDB) GetUser(userID string, username string) (models.User, *models.
 	}
 	var result models.User
 	err := m.collection.FindOne(context.TODO(), query).Decode(&result)
-	if err != nil {
-		return models.User{}, &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
-	}
-	if result.UserID == "" {
+	if err != nil && err == mongo.ErrNoDocuments {
 		return models.User{}, &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
+	} else if err != nil {
+		return models.User{}, &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
 	}
 	return result, nil
 }

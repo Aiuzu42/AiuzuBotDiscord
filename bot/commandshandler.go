@@ -19,10 +19,12 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(m.Content, prefix) == true {
 		r := []rune(m.Content)
 		st := string(r[pLen:])
-		words := strings.Split(st, " ")
-		switch words[0] {
-		case "reloadRoles":
+		args := strings.Split(st, " ")
+		switch args[0] {
+		case "reloadConfig":
 			reloadRolesCommand(s, m.ChannelID)
+		case "say":
+			sayCommand(s, m, r)
 		default:
 			if IsMod(m.Member.Roles, m.Author.ID) {
 				sendErrorResponse(s, m.ChannelID, "El comando que intentas usar no existe.")
@@ -30,6 +32,18 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
+}
+
+func sayCommand(s *discordgo.Session, m *discordgo.MessageCreate, r []rune) {
+	if !IsOwner(m.Author.ID) {
+		log.Warn("User: " + m.Author.ID + " tried to use command details without permission.")
+		return
+	}
+	msg := string(r[pLen+4:])
+	_, err := s.ChannelMessageSend(m.ChannelID, msg)
+	if err != nil {
+		log.Error("say command " + err.Error())
+	}
 }
 
 func updateUserData(m *discordgo.MessageCreate) {
