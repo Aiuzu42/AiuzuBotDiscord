@@ -23,7 +23,7 @@ func StartApp() {
 	if err != nil {
 		os.Exit(1)
 	}
-	b.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMembers)
+	b.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 	b.AddHandler(bot.CommandsHandler)
 	b.AddHandler(bot.NewMemberHandler)
 	b.AddHandler(bot.MemberLeaveHandler)

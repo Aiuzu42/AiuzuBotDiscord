@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"github.com/aiuzu42/AiuzuBotDiscord/models"
@@ -35,15 +36,13 @@ func (m *MongoDB) InitDB(c config.DBConnection) *models.AppError {
 }
 
 func (m *MongoDB) GetUser(userID string, username string) (models.User, *models.AppError) {
-	query := bson.M{
-		"userID": userID,
-		"$or":    bson.M{"fullName": username},
-	}
+	query := bson.M{"$or": []bson.M{{"userID": userID}, {"fullName": username}}}
 	var result models.User
 	err := m.collection.FindOne(context.TODO(), query).Decode(&result)
 	if err != nil && err == mongo.ErrNoDocuments {
 		return models.User{}, &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
 	} else if err != nil {
+		log.Error("GetUser 1: " + err.Error())
 		return models.User{}, &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
 	}
 	return result, nil
@@ -80,15 +79,22 @@ func (m *MongoDB) IncreaseMessageCount(userID string) *models.AppError {
 		log.Error(found.Err().Error())
 		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
 	}
+	lastMessage := time.Now().Format("01-02-2006")
 	updateQuery := bson.D{
 		{
 			Key: "$inc", Value: bson.D{
 				{Key: "server.messageCount", Value: 1},
 			},
 		},
+		{
+			Key: "$set", Value: bson.D{
+				{Key: "server.lastMessage", Value: lastMessage},
+			},
+		},
 	}
 	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
 	if err != nil {
+		log.Error("IncreaseMessageCount update " + err.Error())
 		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
 	}
 	return nil

@@ -10,13 +10,15 @@ import (
 )
 
 type configuration struct {
-	Server   string       `json:"server"`
-	Token    string       `json:"token"`
-	DBConn   DBConnection `json:"dbConnection"`
-	Owners   []string     `json:"owners"`
-	Mods     []string     `json:"mods"`
-	Admins   []string     `json:"admins"`
-	FChannel string       `json:"fChannel"`
+	Server       string       `json:"server"`
+	Token        string       `json:"token"`
+	LogLevel     string       `json:"logLevel"`
+	DBConn       DBConnection `json:"dbConnection"`
+	Owners       []string     `json:"owners"`
+	Mods         []string     `json:"mods"`
+	Admins       []string     `json:"admins"`
+	FChannel     string       `json:"fChannel"`
+	RolUltimatum string       `json:"rolUltimatum"`
 }
 
 type DBConnection struct {
@@ -43,6 +45,12 @@ func InitConfig() {
 	if err != nil {
 		fmt.Println(err.Error())
 		log.Panic(err.Error())
+	}
+	switch Config.LogLevel {
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	default:
+		log.SetLevel(log.InfoLevel)
 	}
 }
 

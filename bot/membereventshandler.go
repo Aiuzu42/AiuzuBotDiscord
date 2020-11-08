@@ -40,19 +40,16 @@ func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 		return
 	}
 	msg := m.User.Username + "#" + m.User.Discriminator + " abandonó el servidor. ID: " + m.User.ID
-	_, err := s.ChannelMessageSend(config.Config.FChannel, msg)
-	if err != nil {
-		log.Error("error in member leave event1" + err.Error())
-	}
-	_, appErr := repo.GetUser(m.Member.User.ID, "")
+	user, appErr := repo.GetUser(m.Member.User.ID, "")
 	if appErr != nil && appErr.Code == models.UserAlredyExists {
 		appErr = repo.AddLeaveDate(m.Member.User.ID, time.Now().Format(time.RFC3339))
 		if appErr != nil {
-			log.Error("error in member leave event2 " + appErr.Message)
+			log.Error("error in member leave event2 " + appErr.Message + msg)
 		}
 	} else if appErr != nil {
-		log.Error("error in member leave event3 " + appErr.Message)
+		log.Error("error in member leave event3 " + appErr.Message + msg)
 	} else {
+		log.Info("Adding member that wasnt in DB and leave the server.")
 		full := m.Member.User.Username + "#" + m.Member.User.Discriminator
 		user := models.User{UserID: m.Member.User.ID, Name: m.Member.User.Username, Nickname: m.Member.Nick, FullName: full}
 		user.Server.JoinDates = append(user.Server.JoinDates, string(m.Member.JoinedAt))
@@ -62,7 +59,14 @@ func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 		user.Server.LeftDates = append(user.Server.LeftDates, time.Now().Format(time.RFC3339))
 		appErr := repo.AddUser(user)
 		if appErr != nil {
-			log.Error("error in member leave event4 " + appErr.Message)
+			log.Error("error in member leave event4 " + appErr.Message + msg)
 		}
+	}
+	if user.Server.Ultimatum {
+		msg = msg + " y era ULTIMATUM."
+	}
+	_, err := s.ChannelMessageSend(config.Config.FChannel, msg)
+	if err != nil {
+		log.Error("error in member leave event1" + err.Error() + msg)
 	}
 }

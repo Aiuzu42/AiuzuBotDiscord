@@ -1,6 +1,7 @@
 {
     "server" : "",
     "token" : "",
+    "logLevel" : "",
     "dbConnection" : {
         "type" : "",
         "host" : "",
@@ -14,5 +15,6 @@
     "owners" : [],
     "mods" : [],
     "admins" : [],
-    "fChannel" : ""
+    "fChannel" : "",
+    "rolUltimatum" : ""
 }

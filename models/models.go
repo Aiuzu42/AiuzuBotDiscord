@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -25,6 +26,7 @@ type User struct {
 
 type Sanction struct {
 	Count           int       `bson:"count"`
+	LastMessage     string    `bson:"lastMessage"`
 	Aviso           bool      `bson:"aviso"`
 	SanctionDetails []Details `bson:"sanctionDetails"`
 }
@@ -51,7 +53,18 @@ type AppError struct {
 }
 
 func (d Details) String() string {
-	return d.AdminName + " con ID: " + d.AdminID + " sanciono con el comando " + d.Command + " el dia " + d.Date
+	var strB strings.Builder
+	strB.WriteString(d.AdminName + " con ID: " + d.AdminID)
+	if d.Command != "" {
+		strB.WriteString(" sanciono con el comando " + d.Command)
+	}
+	if d.Date != "" {
+		strB.WriteString(" el dia " + d.Date)
+	}
+	if d.Notes != "" {
+		strB.WriteString(". Notas: " + d.Notes)
+	}
+	return strB.String()
 }
 
 func (a AppError) String() string {
