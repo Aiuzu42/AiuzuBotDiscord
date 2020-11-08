@@ -50,10 +50,6 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func sayCommand(s *discordgo.Session, m *discordgo.MessageCreate, r []rune) {
-	if !IsOwner(m.Author.ID) {
-		log.Warn("User: " + m.Author.ID + " tried to use command details without permission.")
-		return
-	}
 	err := s.ChannelMessageDelete(m.ChannelID, m.ID)
 	if err != nil {
 		log.Error("say command cant delete message" + err.Error())
