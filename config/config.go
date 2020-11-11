@@ -21,6 +21,7 @@ type configuration struct {
 	RolUltimatum string       `json:"rolUltimatum"`
 }
 
+// DBConnections contains all the needed information to connect to a database.
 type DBConnection struct {
 	DBType     string `json:"type"`
 	Host       string `json:"host"`
@@ -36,6 +37,7 @@ const (
 	filePath = "config.json"
 )
 
+// Config contains the bot configuration.
 var Config configuration
 
 //InitConfig should be only used to load config at the start of the program, it panics if the config cannot be loaded for any reason.

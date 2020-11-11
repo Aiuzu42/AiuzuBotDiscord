@@ -18,6 +18,7 @@ type MongoDB struct {
 	collection *mongo.Collection
 }
 
+// InitDB start the mongoDB connection initializing the client and collection pointers.
 func (m *MongoDB) InitDB(c config.DBConnection) *models.AppError {
 	var err error
 	options := options.Client().ApplyURI(fmt.Sprintf("mongodb+srv://%s:%s@%s/%s%s", c.User, c.Pass, c.Host, c.DB, c.Options))
@@ -35,6 +36,7 @@ func (m *MongoDB) InitDB(c config.DBConnection) *models.AppError {
 	return nil
 }
 
+// GetUser searches and returns user information from the database that matches either the userId or username.
 func (m *MongoDB) GetUser(userID string, username string) (models.User, *models.AppError) {
 	query := bson.M{"$or": []bson.M{{"userID": userID}, {"fullName": username}}}
 	var result models.User
@@ -48,6 +50,7 @@ func (m *MongoDB) GetUser(userID string, username string) (models.User, *models.
 	return result, nil
 }
 
+// AddUser adds the user information to the database.
 func (m *MongoDB) AddUser(user models.User) *models.AppError {
 	query := bson.M{
 		"userID": user.UserID,
@@ -67,6 +70,9 @@ func (m *MongoDB) AddUser(user models.User) *models.AppError {
 	return nil
 }
 
+// IncreaseMessageCount searches for the document with the provided userID.
+// If found, it increases its server.messageCount value and updates server.lastMessage.
+// If the user is not found an error is returned.
 func (m *MongoDB) IncreaseMessageCount(userID string) *models.AppError {
 	query := bson.M{
 		"userID": userID,
@@ -100,6 +106,9 @@ func (m *MongoDB) IncreaseMessageCount(userID string) *models.AppError {
 	return nil
 }
 
+// AddJoinDate looks for the document with the userID provided.
+// If found updates its server.JoinDates value.
+// If not found an error is returned.
 func (m *MongoDB) AddJoinDate(userID string, date string) *models.AppError {
 	query := bson.M{
 		"userID": userID,
@@ -126,6 +135,9 @@ func (m *MongoDB) AddJoinDate(userID string, date string) *models.AppError {
 	return nil
 }
 
+// AddLeaveDate looks for the document with the userID provided.
+// If found updates its server.leftDates value.
+// If not found an error is returned.
 func (m *MongoDB) AddLeaveDate(userID string, date string) *models.AppError {
 	query := bson.M{
 		"userID": userID,

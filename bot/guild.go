@@ -13,16 +13,19 @@ var (
 	owners     = []string{}
 )
 
+// LoadRoles saves to memory who are the owners, admins and mods from the configuration file.
 func LoadRoles() {
 	owners = config.Config.Owners
 	adminRoles = config.Config.Admins
 	modRoles = config.Config.Mods
 }
 
+// IsOwner returns true if userID matches an ID of the owners group.
 func IsOwner(userID string) bool {
 	return findIfExists(userID, owners)
 }
 
+// IsAdmin returns true if any of the roles is part of the admins group or if the userID matches an ID of the owners group.
 func IsAdmin(roles []string, userID string) bool {
 	if IsOwner(userID) {
 		return true
@@ -30,6 +33,7 @@ func IsAdmin(roles []string, userID string) bool {
 	return arrayFindIfExists(roles, adminRoles)
 }
 
+// IsMod returns true if any of the roles is part of the admins or mods group or if the userID matches an ID of the owners group.
 func IsMod(roles []string, userID string) bool {
 	if IsAdmin(roles, userID) {
 		return true
@@ -37,6 +41,7 @@ func IsMod(roles []string, userID string) bool {
 	return arrayFindIfExists(roles, modRoles)
 }
 
+// AddToAdmins adds the roles to the admins group.
 func AddToAdmins(roles []string) {
 	for _, r := range roles {
 		if !findIfExists(r, adminRoles) {
@@ -45,6 +50,7 @@ func AddToAdmins(roles []string) {
 	}
 }
 
+// AddToMods adds the roles to the mods group.
 func AddToMods(roles []string) {
 	for _, r := range roles {
 		if !findIfExists(r, modRoles) {
@@ -53,6 +59,7 @@ func AddToMods(roles []string) {
 	}
 }
 
+// RemoveFromMods remove the role from the mods group.
 func RemoveFromMods(role string) bool {
 	for i, e := range modRoles {
 		if role == e {
@@ -65,6 +72,7 @@ func RemoveFromMods(role string) bool {
 	return false
 }
 
+// RemoveFromAdmins remove the role from the admins group.
 func RemoveFromAdmins(role string) bool {
 	for i, e := range adminRoles {
 		if role == e {
@@ -77,6 +85,8 @@ func RemoveFromAdmins(role string) bool {
 	return false
 }
 
+// ListAdminRoles returns a list of the names of the roles in the admins group.
+// The names are obtained from the Discord API using the session and the guildID.
 func ListAdminRoles(s *discordgo.Session, id string) ([]string, *models.AppError) {
 	guildRoles, err := s.GuildRoles(id)
 	if err != nil {
@@ -98,6 +108,8 @@ func ListAdminRoles(s *discordgo.Session, id string) ([]string, *models.AppError
 	return res, nil
 }
 
+// ListModRoles returns a list of the names of the roles in the mods group.
+// The names are obtained from the Discord API using the session and the guildID.
 func ListModRoles(s *discordgo.Session, id string) ([]string, *models.AppError) {
 	guildRoles, err := s.GuildRoles(id)
 	if err != nil {

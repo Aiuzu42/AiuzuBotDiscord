@@ -5,6 +5,7 @@ import (
 	"github.com/aiuzu42/AiuzuBotDiscord/models"
 )
 
+//Database defines the methods required for a struct to be a valid database connection.
 type Databse interface {
 	InitDB(c config.DBConnection) *models.AppError
 	GetUser(userID string, username string) (models.User, *models.AppError)

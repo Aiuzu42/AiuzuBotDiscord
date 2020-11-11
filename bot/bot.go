@@ -18,6 +18,8 @@ const (
 	defaultPrefix = "ai!"
 )
 
+// SelectRepository starts and instance of the repository of the selected type.
+// Accepted types "memory", "mongoDB"
 func SelectRepository(dbType string) error {
 	switch dbType {
 	case "memory":

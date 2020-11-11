@@ -13,6 +13,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// StartApp Initialize the bot.
+// It load roles from config, start discordgo session, selects repository type, adds handlers, prints bot version and handles stop condition.
 func StartApp() {
 	bot.LoadRoles()
 	b, err := discordgo.New("Bot " + config.Config.Token)

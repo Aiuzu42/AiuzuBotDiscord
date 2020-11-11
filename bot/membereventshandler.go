@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// NewMemberHandler is the handler that performs tasks when a new member is added to the guild.
 func NewMemberHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 	if m.GuildID != config.Config.Server {
 		return
@@ -35,6 +36,7 @@ func NewMemberHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 	}
 }
 
+// MemberLeaveHandler is the handler that performs tasks when a member is removed from the guild.
 func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 	if m.GuildID != config.Config.Server {
 		return
