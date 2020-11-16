@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
-	"github.com/aiuzu42/AiuzuBotDiscord/models"
+	db "github.com/aiuzu42/AiuzuBotDiscord/database"
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 )
@@ -71,19 +71,19 @@ func updateUserData(m *discordgo.MessageCreate) {
 		log.Error("[updateUserData]Message with nil author")
 		return
 	}
-	err := repo.IncreaseMessageCount(m.Author.ID)
-	if err != nil && err.Code == models.UserNotFoundCode {
+	dbErr := repo.IncreaseMessageCount(m.Author.ID)
+	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		user, errM := userAndMemberToLocalUser(m.Author, m.Member)
 		if errM != nil {
 			log.Error("[updateUserData]Unable to create user: " + errM.Error())
 			return
 		}
-		appErr := repo.AddUser(user)
-		if appErr != nil {
-			log.Error("[updateUserData]Unable to store user in database: " + appErr.Message)
+		dbErr := repo.AddUser(user)
+		if dbErr != nil {
+			log.Error("[updateUserData]Unable to store user in database: " + dbErr.Message)
 		}
-	} else if err != nil {
-		log.Error("[updateUserData]Error trying to increase message count: " + err.Message)
+	} else if dbErr != nil {
+		log.Error("[updateUserData]Error trying to increase message count: " + dbErr.Message)
 	}
 }
 
@@ -97,11 +97,11 @@ func fullDetailsCommand(s *discordgo.Session, m *discordgo.MessageCreate, args [
 		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!details {user}")
 		return
 	}
-	user, appErr := repo.GetUser(args[1], args[1])
-	if appErr != nil && appErr.Code == models.UserNotFoundCode {
+	user, dbErr := repo.GetUser(args[1], args[1])
+	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		sendErrorResponse(s, m.ChannelID, "El usuario no se encontro en base de datos")
-	} else if appErr != nil {
-		log.Error("[fullDetailsCommand]Database error: " + appErr.Message)
+	} else if dbErr != nil {
+		log.Error("[fullDetailsCommand]Database error: " + dbErr.Message)
 		sendErrorResponse(s, m.ChannelID, "Hubo un error con la base de datos")
 	} else {
 		_, err := s.ChannelMessageSendEmbed(m.ChannelID, createMessageEmbedUserFull(user))
@@ -121,11 +121,11 @@ func detailsCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []str
 		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!details {user}")
 		return
 	}
-	user, appErr := repo.GetUser(args[1], args[1])
-	if appErr != nil && appErr.Code == models.UserNotFoundCode {
+	user, dbErr := repo.GetUser(args[1], args[1])
+	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		sendErrorResponse(s, m.ChannelID, "El usuario no se encontro en base de datos")
-	} else if appErr != nil {
-		log.Error("[detailsCommand]Database error: " + appErr.Message)
+	} else if dbErr != nil {
+		log.Error("[detailsCommand]Database error: " + dbErr.Message)
 		sendErrorResponse(s, m.ChannelID, "Hubo un error con la base de datos")
 	} else {
 		_, err := s.ChannelMessageSendEmbed(m.ChannelID, createMessageEmbedUser(user))
@@ -145,11 +145,11 @@ func sanctionsCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []s
 		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!detalleSanciones {user}")
 		return
 	}
-	user, appErr := repo.GetUser(args[1], args[1])
-	if appErr != nil && appErr.Code == models.UserNotFoundCode {
+	user, dbErr := repo.GetUser(args[1], args[1])
+	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		sendErrorResponse(s, m.ChannelID, "El usuario no se encontro en base de datos")
-	} else if appErr != nil {
-		log.Error("[sanctionsCommand]Database error: " + appErr.Message)
+	} else if dbErr != nil {
+		log.Error("[sanctionsCommand]Database error: " + dbErr.Message)
 		sendErrorResponse(s, m.ChannelID, "Hubo un error con la base de datos")
 	} else {
 		_, err := s.ChannelMessageSendEmbed(m.ChannelID, createMessageEmbedSanctions(user))
@@ -213,18 +213,18 @@ func syncDatabase(s *discordgo.Session, m *discordgo.MessageCreate) {
 			log.Warn("[syncDatabase]Member without user " + m.ID)
 			continue
 		}
-		_, appErr := repo.GetUser(member.User.ID, "")
+		_, dbErr := repo.GetUser(member.User.ID, "")
 		full := member.User.Username + "#" + member.User.Discriminator
-		if appErr != nil && appErr.Code == models.UserNotFoundCode {
+		if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 			user, err := memberToLocalUser(member)
 			if err != nil {
 				log.Error("[syncDatabase]Error parsing user info: " + err.Error())
 				continue
 			}
 			log.Warn("[syncDatabase]Se agregaria a " + full + " a la db")
-			appErr := repo.AddUser(user)
-			if appErr != nil {
-				log.Error("[syncDatabase]Error with new member at sync: " + appErr.Message)
+			dbErr := repo.AddUser(user)
+			if dbErr != nil {
+				log.Error("[syncDatabase]Error with new member at sync: " + dbErr.Message)
 			}
 		} else {
 			log.Warn("[syncDatabase]Ya estaba en db: " + full)

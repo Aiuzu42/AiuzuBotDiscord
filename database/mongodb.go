@@ -18,49 +18,49 @@ type MongoDB struct {
 }
 
 // InitDB start the mongoDB connection initializing the client and collection pointers.
-func (m *MongoDB) InitDB(c config.DBConnection) *models.AppError {
+func (m *MongoDB) InitDB(c config.DBConnection) *dBError {
 	var err error
 	options := options.Client().ApplyURI(fmt.Sprintf("mongodb+srv://%s:%s@%s/%s%s", c.User, c.Pass, c.Host, c.DB, c.Options))
 	m.client, err = mongo.Connect(context.TODO(), options)
 	if err != nil {
-		return &models.AppError{Code: models.CantConnectToDatabase, Message: err.Error()}
+		return &dBError{Code: CantConnectToDatabaseCode, Message: err.Error()}
 	}
 	err = m.client.Ping(context.TODO(), nil)
 	if err != nil {
-		return &models.AppError{Code: models.CantConnectToDatabase, Message: err.Error()}
+		return &dBError{Code: CantConnectToDatabaseCode, Message: err.Error()}
 	}
 	m.collection = m.client.Database(c.DB).Collection(c.Collection)
 	return nil
 }
 
 // GetUser searches and returns user information from the database that matches either the userId or username.
-func (m *MongoDB) GetUser(userID string, username string) (models.User, *models.AppError) {
+func (m *MongoDB) GetUser(userID string, username string) (models.User, *dBError) {
 	query := bson.M{"$or": []bson.M{{"userID": userID}, {"fullName": username}}}
 	var result models.User
 	err := m.collection.FindOne(context.TODO(), query).Decode(&result)
 	if err != nil && err == mongo.ErrNoDocuments {
-		return models.User{}, &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
+		return models.User{}, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 	} else if err != nil {
-		return models.User{}, &models.AppError{Code: models.DatabaseError, Message: err.Error()}
+		return models.User{}, &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
 	return result, nil
 }
 
 // AddUser adds the user information to the database.
-func (m *MongoDB) AddUser(user models.User) *models.AppError {
+func (m *MongoDB) AddUser(user models.User) *dBError {
 	query := bson.M{
 		"userID": user.UserID,
 	}
 	var found *mongo.SingleResult
 	found = m.collection.FindOne(context.TODO(), query)
 	if found.Err() == nil {
-		return &models.AppError{Code: models.UserAlredyExists, Message: "The user alredy exists"}
+		return &dBError{Code: UserAlredyExistsCode, Message: UserAlredyExistsMessage}
 	} else if found.Err() != nil && found.Err() != mongo.ErrNoDocuments {
-		return &models.AppError{Code: models.DatabaseError, Message: found.Err().Error()}
+		return &dBError{Code: DatabaseErrorCode, Message: found.Err().Error()}
 	}
 	_, err := m.collection.InsertOne(context.TODO(), user)
 	if err != nil {
-		return &models.AppError{Code: models.DatabaseError, Message: err.Error()}
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
 	return nil
 }
@@ -68,16 +68,16 @@ func (m *MongoDB) AddUser(user models.User) *models.AppError {
 // IncreaseMessageCount searches for the document with the provided userID.
 // If found, it increases its server.messageCount value and updates server.lastMessage.
 // If the user is not found an error is returned.
-func (m *MongoDB) IncreaseMessageCount(userID string) *models.AppError {
+func (m *MongoDB) IncreaseMessageCount(userID string) *dBError {
 	query := bson.M{
 		"userID": userID,
 	}
 	var found *mongo.SingleResult
 	found = m.collection.FindOne(context.TODO(), query)
 	if found.Err() != nil && found.Err() == mongo.ErrNoDocuments {
-		return &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
+		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 	} else if found.Err() != nil {
-		return &models.AppError{Code: models.DatabaseError, Message: found.Err().Error()}
+		return &dBError{Code: DatabaseErrorCode, Message: found.Err().Error()}
 	}
 	lastMessage := time.Now().Format("01-02-2006")
 	updateQuery := bson.D{
@@ -94,7 +94,7 @@ func (m *MongoDB) IncreaseMessageCount(userID string) *models.AppError {
 	}
 	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
 	if err != nil {
-		return &models.AppError{Code: models.DatabaseError, Message: err.Error()}
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
 	return nil
 }
@@ -102,16 +102,16 @@ func (m *MongoDB) IncreaseMessageCount(userID string) *models.AppError {
 // AddJoinDate looks for the document with the userID provided.
 // If found updates its server.JoinDates value.
 // If not found an error is returned.
-func (m *MongoDB) AddJoinDate(userID string, date string) *models.AppError {
+func (m *MongoDB) AddJoinDate(userID string, date string) *dBError {
 	query := bson.M{
 		"userID": userID,
 	}
 	var found *mongo.SingleResult
 	found = m.collection.FindOne(context.TODO(), query)
 	if found.Err() != nil && found.Err() == mongo.ErrNoDocuments {
-		return &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
+		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 	} else if found.Err() != nil {
-		return &models.AppError{Code: models.DatabaseError, Message: found.Err().Error()}
+		return &dBError{Code: DatabaseErrorCode, Message: found.Err().Error()}
 	}
 	updateQuery := bson.D{
 		{
@@ -122,7 +122,7 @@ func (m *MongoDB) AddJoinDate(userID string, date string) *models.AppError {
 	}
 	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
 	if err != nil {
-		return &models.AppError{Code: models.DatabaseError, Message: err.Error()}
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
 	return nil
 }
@@ -130,16 +130,16 @@ func (m *MongoDB) AddJoinDate(userID string, date string) *models.AppError {
 // AddLeaveDate looks for the document with the userID provided.
 // If found updates its server.leftDates value.
 // If not found an error is returned.
-func (m *MongoDB) AddLeaveDate(userID string, date string) *models.AppError {
+func (m *MongoDB) AddLeaveDate(userID string, date string) *dBError {
 	query := bson.M{
 		"userID": userID,
 	}
 	var found *mongo.SingleResult
 	found = m.collection.FindOne(context.TODO(), query)
 	if found.Err() != nil && found.Err() == mongo.ErrNoDocuments {
-		return &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
+		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 	} else if found.Err() != nil {
-		return &models.AppError{Code: models.DatabaseError, Message: found.Err().Error()}
+		return &dBError{Code: DatabaseErrorCode, Message: found.Err().Error()}
 	}
 	updateQuery := bson.D{
 		{
@@ -150,7 +150,7 @@ func (m *MongoDB) AddLeaveDate(userID string, date string) *models.AppError {
 	}
 	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
 	if err != nil {
-		return &models.AppError{Code: models.DatabaseError, Message: err.Error()}
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
 	return nil
 }

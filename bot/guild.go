@@ -2,9 +2,7 @@ package bot
 
 import (
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
-	"github.com/aiuzu42/AiuzuBotDiscord/models"
 	"github.com/bwmarrin/discordgo"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -87,11 +85,10 @@ func RemoveFromAdmins(role string) bool {
 
 // ListAdminRoles returns a list of the names of the roles in the admins group.
 // The names are obtained from the Discord API using the session and the guildID.
-func ListAdminRoles(s *discordgo.Session, id string) ([]string, *models.AppError) {
+func ListAdminRoles(s *discordgo.Session, id string) ([]string, error) {
 	guildRoles, err := s.GuildRoles(id)
 	if err != nil {
-		log.Warn("[ListAdminRoles]Error getting guild roles: " + err.Error())
-		return adminRoles, &models.AppError{Code: models.DiscordError, Message: err.Error()}
+		return adminRoles, err
 	}
 	res := make([]string, len(adminRoles))
 	for i, ar := range adminRoles {
@@ -110,11 +107,10 @@ func ListAdminRoles(s *discordgo.Session, id string) ([]string, *models.AppError
 
 // ListModRoles returns a list of the names of the roles in the mods group.
 // The names are obtained from the Discord API using the session and the guildID.
-func ListModRoles(s *discordgo.Session, id string) ([]string, *models.AppError) {
+func ListModRoles(s *discordgo.Session, id string) ([]string, error) {
 	guildRoles, err := s.GuildRoles(id)
 	if err != nil {
-		log.Warn("[ListModRoles]Error getting guild roles: " + err.Error())
-		return modRoles, &models.AppError{Code: models.DiscordError, Message: err.Error()}
+		return modRoles, err
 	}
 	res := make([]string, len(modRoles))
 	for i, ar := range modRoles {

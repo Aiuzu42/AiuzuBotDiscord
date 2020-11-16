@@ -2,16 +2,7 @@ package models
 
 import (
 	"encoding/json"
-	"strconv"
 	"strings"
-)
-
-const (
-	UserNotFoundCode      = 1
-	UserAlredyExists      = 2
-	CantConnectToDatabase = 3
-	DatabaseError         = 4
-	DiscordError          = 5
 )
 
 type User struct {
@@ -47,11 +38,6 @@ type ServerDetails struct {
 	WasModerator bool     `bson:"wasModerator"`
 }
 
-type AppError struct {
-	Code    int
-	Message string
-}
-
 func (d Details) String() string {
 	var strB strings.Builder
 	strB.WriteString(d.AdminName + " con ID: " + d.AdminID)
@@ -65,10 +51,6 @@ func (d Details) String() string {
 		strB.WriteString(". Notas: " + d.Notes)
 	}
 	return strB.String()
-}
-
-func (a AppError) String() string {
-	return strconv.Itoa(a.Code) + ": " + a.Message
 }
 
 func (u User) String() string {
