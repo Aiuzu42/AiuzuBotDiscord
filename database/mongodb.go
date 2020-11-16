@@ -102,55 +102,49 @@ func (m *MongoDB) IncreaseMessageCount(userID string) *dBError {
 // AddJoinDate looks for the document with the userID provided.
 // If found updates its server.JoinDates value.
 // If not found an error is returned.
-func (m *MongoDB) AddJoinDate(userID string, date string) *dBError {
-	query := bson.M{
-		"userID": userID,
+func (m *MongoDB) AddJoinDate(userID string, date time.Time) (bool, *dBError) {
+	user, dbErr := m.GetUser(userID, userID)
+	if dbErr != nil {
+		return false, dbErr
 	}
-	var found *mongo.SingleResult
-	found = m.collection.FindOne(context.TODO(), query)
-	if found.Err() != nil && found.Err() == mongo.ErrNoDocuments {
-		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
-	} else if found.Err() != nil {
-		return &dBError{Code: DatabaseErrorCode, Message: found.Err().Error()}
+	findQuery := bson.M{
+		"userID": userID,
 	}
 	updateQuery := bson.D{
 		{
 			Key: "$push", Value: bson.D{
-				{Key: "server.joinDates", Value: date},
+				{Key: "server.joinDates", Value: date.Format(time.RFC822)},
 			},
 		},
 	}
-	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	_, err := m.collection.UpdateOne(context.TODO(), findQuery, updateQuery)
 	if err != nil {
-		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+		return false, &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
-	return nil
+	return user.Server.Ultimatum, nil
 }
 
 // AddLeaveDate looks for the document with the userID provided.
 // If found updates its server.leftDates value.
 // If not found an error is returned.
-func (m *MongoDB) AddLeaveDate(userID string, date string) *dBError {
-	query := bson.M{
-		"userID": userID,
+func (m *MongoDB) AddLeaveDate(userID string, date time.Time) (bool, *dBError) {
+	user, dbErr := m.GetUser(userID, userID)
+	if dbErr != nil {
+		return false, dbErr
 	}
-	var found *mongo.SingleResult
-	found = m.collection.FindOne(context.TODO(), query)
-	if found.Err() != nil && found.Err() == mongo.ErrNoDocuments {
-		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
-	} else if found.Err() != nil {
-		return &dBError{Code: DatabaseErrorCode, Message: found.Err().Error()}
+	findQuery := bson.M{
+		"userID": userID,
 	}
 	updateQuery := bson.D{
 		{
 			Key: "$push", Value: bson.D{
-				{Key: "server.leftDates", Value: date},
+				{Key: "server.leftDates", Value: date.Format(time.RFC822)},
 			},
 		},
 	}
-	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	_, err := m.collection.UpdateOne(context.TODO(), findQuery, updateQuery)
 	if err != nil {
-		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+		return false, &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
-	return nil
+	return user.Server.Ultimatum, nil
 }

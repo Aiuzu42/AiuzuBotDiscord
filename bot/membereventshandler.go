@@ -16,7 +16,12 @@ func NewMemberHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 	}
 	_, dbErr := repo.GetUser(m.Member.User.ID, "")
 	if dbErr != nil && dbErr.Code == db.UserAlredyExistsCode {
-		dbErr = repo.AddJoinDate(m.Member.User.ID, string(m.Member.JoinedAt))
+		ja, err := m.Member.JoinedAt.Parse()
+		if err != nil {
+			log.Error("[NewMemberHandler]Error parsing join date for user [" + m.Member.User.ID + "]: " + err.Error())
+			return
+		}
+		_, dbErr = repo.AddJoinDate(m.Member.User.ID, ja)
 		if dbErr != nil {
 			log.Error("[NewMemberHandler]Error adding join date: " + dbErr.Message)
 		}
@@ -41,30 +46,26 @@ func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 		return
 	}
 	msg := m.User.Username + "#" + m.User.Discriminator + " abandonó el servidor. ID: " + m.User.ID
-	user, dbErr := repo.GetUser(m.Member.User.ID, "")
-	if dbErr != nil && dbErr.Code == db.UserAlredyExistsCode {
-		dbErr = repo.AddLeaveDate(m.Member.User.ID, time.Now().Format(time.RFC822))
-		if dbErr != nil {
-			log.Warn("[MemberLeaveHandler]" + msg)
-			log.Error("[MemberLeaveHandler]Error adding leave date: " + dbErr.Message)
-		}
-	} else if dbErr != nil {
-		log.Warn("[MemberLeaveHandler]" + msg)
-		log.Error("[MemberLeaveHandler]Database error getting user: " + dbErr.Message)
-	} else {
+	ult, dbErr := repo.AddLeaveDate(m.Member.User.ID, time.Now())
+	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		log.Info("[MemberLeaveHandler]Adding member that wasnt in DB and leave the server.")
 		user, err := memberToLocalUser(m.Member)
 		if err != nil {
 			log.Error("[MemberLeaveHandler]Unable to create user: " + err.Error())
 			return
 		}
-		user.Server.LeftDates = append(user.Server.LeftDates, time.Now().Format(time.RFC822))
+		user.Server.AppendLeftDates(time.Now())
 		dbErr := repo.AddUser(user)
 		if dbErr != nil {
 			log.Error("[MemberLeaveHandler]Database error adding user: " + dbErr.Message + msg)
+			return
 		}
+	} else if dbErr != nil {
+		log.Warn("[MemberLeaveHandler]" + msg)
+		log.Error("[MemberLeaveHandler]Database error updating user: " + dbErr.Message)
+		return
 	}
-	if user.Server.Ultimatum {
+	if ult {
 		msg = msg + " y era ULTIMATUM."
 	}
 	_, err := s.ChannelMessageSend(config.Config.FChannel, msg)

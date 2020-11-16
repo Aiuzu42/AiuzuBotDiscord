@@ -2,6 +2,7 @@ package database
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"github.com/aiuzu42/AiuzuBotDiscord/models"
@@ -22,8 +23,8 @@ type Databse interface {
 	GetUser(userID string, username string) (models.User, *dBError)
 	AddUser(user models.User) *dBError
 	IncreaseMessageCount(userID string) *dBError
-	AddJoinDate(userID string, date string) *dBError
-	AddLeaveDate(userID string, date string) *dBError
+	AddJoinDate(userID string, date time.Time) (bool, *dBError)
+	AddLeaveDate(userID string, date time.Time) (bool, *dBError)
 }
 
 type dBError struct {

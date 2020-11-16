@@ -1,6 +1,8 @@
 package database
 
 import (
+	"time"
+
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"github.com/aiuzu42/AiuzuBotDiscord/models"
 )
@@ -42,22 +44,22 @@ func (m *Memory) IncreaseMessageCount(userID string) *dBError {
 	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
 
-func (m *Memory) AddJoinDate(userID string, date string) *dBError {
+func (m *Memory) AddJoinDate(userID string, date time.Time) (bool, *dBError) {
 	for i := range m.db {
 		if userID == m.db[i].UserID {
-			m.db[i].Server.JoinDates = append(m.db[i].Server.JoinDates, date)
-			return nil
+			m.db[i].Server.AppendJoinDate(date)
+			return m.db[i].Server.Ultimatum, nil
 		}
 	}
-	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	return false, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
 
-func (m *Memory) AddLeaveDate(userID string, date string) *dBError {
+func (m *Memory) AddLeaveDate(userID string, date time.Time) (bool, *dBError) {
 	for i := range m.db {
 		if userID == m.db[i].UserID {
-			m.db[i].Server.LeftDates = append(m.db[i].Server.LeftDates, date)
-			return nil
+			m.db[i].Server.AppendLeftDates(date)
+			return m.db[i].Server.Ultimatum, nil
 		}
 	}
-	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	return false, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
