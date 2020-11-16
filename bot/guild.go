@@ -90,8 +90,8 @@ func RemoveFromAdmins(role string) bool {
 func ListAdminRoles(s *discordgo.Session, id string) ([]string, *models.AppError) {
 	guildRoles, err := s.GuildRoles(id)
 	if err != nil {
-		log.Warn("ListAdminRoles " + err.Error())
-		return adminRoles, &models.AppError{Code: models.DiscordError, Message: "Discord error"}
+		log.Warn("[ListAdminRoles]Error getting guild roles: " + err.Error())
+		return adminRoles, &models.AppError{Code: models.DiscordError, Message: err.Error()}
 	}
 	res := make([]string, len(adminRoles))
 	for i, ar := range adminRoles {
@@ -113,8 +113,8 @@ func ListAdminRoles(s *discordgo.Session, id string) ([]string, *models.AppError
 func ListModRoles(s *discordgo.Session, id string) ([]string, *models.AppError) {
 	guildRoles, err := s.GuildRoles(id)
 	if err != nil {
-		log.Warn("ListModRoles " + err.Error())
-		return modRoles, &models.AppError{Code: models.DiscordError, Message: "Discord error"}
+		log.Warn("[ListModRoles]Error getting guild roles: " + err.Error())
+		return modRoles, &models.AppError{Code: models.DiscordError, Message: err.Error()}
 	}
 	res := make([]string, len(modRoles))
 	for i, ar := range modRoles {

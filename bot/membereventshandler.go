@@ -18,20 +18,19 @@ func NewMemberHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 	if appErr != nil && appErr.Code == models.UserAlredyExists {
 		appErr = repo.AddJoinDate(m.Member.User.ID, string(m.Member.JoinedAt))
 		if appErr != nil {
-			log.Error("error in new member event1 " + appErr.Message)
+			log.Error("[NewMemberHandler]Error adding join date: " + appErr.Message)
 		}
 	} else if appErr != nil {
-		log.Error("error in new member event2 " + appErr.Message)
+		log.Error("[NewMemberHandler]Database error: " + appErr.Message)
 	} else {
-		full := m.Member.User.Username + "#" + m.Member.User.Discriminator
-		user := models.User{UserID: m.Member.User.ID, Name: m.Member.User.Username, Nickname: m.Member.Nick, FullName: full}
-		user.Server.JoinDates = append(user.Server.JoinDates, string(m.Member.JoinedAt))
-		user.Server.MessageCount = 0
-		user.Server.WasModerator = false
-		user.Server.Ultimatum = false
+		user, err := memberToLocalUser(m.Member)
+		if err != nil {
+			log.Error("[NewMemberHandler]Unable to create user: " + err.Error())
+			return
+		}
 		appErr := repo.AddUser(user)
 		if appErr != nil {
-			log.Error("error in new member event3 " + appErr.Message)
+			log.Error("[NewMemberHandler]Error adding user to database " + appErr.Message)
 		}
 	}
 }
@@ -44,24 +43,25 @@ func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 	msg := m.User.Username + "#" + m.User.Discriminator + " abandonó el servidor. ID: " + m.User.ID
 	user, appErr := repo.GetUser(m.Member.User.ID, "")
 	if appErr != nil && appErr.Code == models.UserAlredyExists {
-		appErr = repo.AddLeaveDate(m.Member.User.ID, time.Now().Format(time.RFC3339))
+		appErr = repo.AddLeaveDate(m.Member.User.ID, time.Now().Format(time.RFC822))
 		if appErr != nil {
-			log.Error("error in member leave event2 " + appErr.Message + msg)
+			log.Warn("[MemberLeaveHandler]" + msg)
+			log.Error("[MemberLeaveHandler]Error adding leave date: " + appErr.Message)
 		}
 	} else if appErr != nil {
-		log.Error("error in member leave event3 " + appErr.Message + msg)
+		log.Warn("[MemberLeaveHandler]" + msg)
+		log.Error("[MemberLeaveHandler]Database error getting user: " + appErr.Message)
 	} else {
-		log.Info("Adding member that wasnt in DB and leave the server.")
-		full := m.Member.User.Username + "#" + m.Member.User.Discriminator
-		user := models.User{UserID: m.Member.User.ID, Name: m.Member.User.Username, Nickname: m.Member.Nick, FullName: full}
-		user.Server.JoinDates = append(user.Server.JoinDates, string(m.Member.JoinedAt))
-		user.Server.MessageCount = 0
-		user.Server.WasModerator = false
-		user.Server.Ultimatum = false
-		user.Server.LeftDates = append(user.Server.LeftDates, time.Now().Format(time.RFC3339))
+		log.Info("[MemberLeaveHandler]Adding member that wasnt in DB and leave the server.")
+		user, err := memberToLocalUser(m.Member)
+		if err != nil {
+			log.Error("[MemberLeaveHandler]Unable to create user: " + err.Error())
+			return
+		}
+		user.Server.LeftDates = append(user.Server.LeftDates, time.Now().Format(time.RFC822))
 		appErr := repo.AddUser(user)
 		if appErr != nil {
-			log.Error("error in member leave event4 " + appErr.Message + msg)
+			log.Error("[MemberLeaveHandler]Database error adding user: " + appErr.Message + msg)
 		}
 	}
 	if user.Server.Ultimatum {
@@ -69,6 +69,7 @@ func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 	}
 	_, err := s.ChannelMessageSend(config.Config.FChannel, msg)
 	if err != nil {
-		log.Error("error in member leave event1" + err.Error() + msg)
+		log.Warn("[MemberLeaveHandler]" + msg)
+		log.Error("[MemberLeaveHandler]Error sending message: " + err.Error() + msg)
 	}
 }

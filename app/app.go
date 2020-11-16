@@ -19,11 +19,11 @@ func StartApp() {
 	bot.LoadRoles()
 	b, err := discordgo.New("Bot " + config.Config.Token)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("[StartApp]Error starting up discordgo: " + err.Error())
 	}
 	err = bot.SelectRepository(config.Config.DBConn.DBType)
 	if err != nil {
-		os.Exit(1)
+		log.Fatal("[StartApp]Error selecting repository: " + err.Error())
 	}
 	b.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 	b.AddHandler(bot.CommandsHandler)
@@ -31,7 +31,7 @@ func StartApp() {
 	b.AddHandler(bot.MemberLeaveHandler)
 	err = b.Open()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("[StartApp]Error opening Discord websocket connection: " + err.Error())
 	}
 	fmt.Println("AiuzuBot Discord is now running. Version: " + version.Version)
 	log.Info("AiuzuBot Discord is now running. Version: " + version.Version)

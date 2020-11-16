@@ -7,7 +7,6 @@ import (
 
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"github.com/aiuzu42/AiuzuBotDiscord/models"
-	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -24,13 +23,11 @@ func (m *MongoDB) InitDB(c config.DBConnection) *models.AppError {
 	options := options.Client().ApplyURI(fmt.Sprintf("mongodb+srv://%s:%s@%s/%s%s", c.User, c.Pass, c.Host, c.DB, c.Options))
 	m.client, err = mongo.Connect(context.TODO(), options)
 	if err != nil {
-		log.Error(err.Error())
-		return &models.AppError{Code: models.CantConnectToDatabase, Message: "Error Connecting to database"}
+		return &models.AppError{Code: models.CantConnectToDatabase, Message: err.Error()}
 	}
 	err = m.client.Ping(context.TODO(), nil)
 	if err != nil {
-		log.Error(err.Error())
-		return &models.AppError{Code: models.CantConnectToDatabase, Message: "Error Connecting to database"}
+		return &models.AppError{Code: models.CantConnectToDatabase, Message: err.Error()}
 	}
 	m.collection = m.client.Database(c.DB).Collection(c.Collection)
 	return nil
@@ -44,8 +41,7 @@ func (m *MongoDB) GetUser(userID string, username string) (models.User, *models.
 	if err != nil && err == mongo.ErrNoDocuments {
 		return models.User{}, &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
 	} else if err != nil {
-		log.Error("GetUser 1: " + err.Error())
-		return models.User{}, &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+		return models.User{}, &models.AppError{Code: models.DatabaseError, Message: err.Error()}
 	}
 	return result, nil
 }
@@ -60,12 +56,11 @@ func (m *MongoDB) AddUser(user models.User) *models.AppError {
 	if found.Err() == nil {
 		return &models.AppError{Code: models.UserAlredyExists, Message: "The user alredy exists"}
 	} else if found.Err() != nil && found.Err() != mongo.ErrNoDocuments {
-		log.Error(found.Err().Error())
-		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+		return &models.AppError{Code: models.DatabaseError, Message: found.Err().Error()}
 	}
 	_, err := m.collection.InsertOne(context.TODO(), user)
 	if err != nil {
-		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+		return &models.AppError{Code: models.DatabaseError, Message: err.Error()}
 	}
 	return nil
 }
@@ -82,8 +77,7 @@ func (m *MongoDB) IncreaseMessageCount(userID string) *models.AppError {
 	if found.Err() != nil && found.Err() == mongo.ErrNoDocuments {
 		return &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
 	} else if found.Err() != nil {
-		log.Error(found.Err().Error())
-		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+		return &models.AppError{Code: models.DatabaseError, Message: found.Err().Error()}
 	}
 	lastMessage := time.Now().Format("01-02-2006")
 	updateQuery := bson.D{
@@ -100,8 +94,7 @@ func (m *MongoDB) IncreaseMessageCount(userID string) *models.AppError {
 	}
 	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
 	if err != nil {
-		log.Error("IncreaseMessageCount update " + err.Error())
-		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+		return &models.AppError{Code: models.DatabaseError, Message: err.Error()}
 	}
 	return nil
 }
@@ -118,8 +111,7 @@ func (m *MongoDB) AddJoinDate(userID string, date string) *models.AppError {
 	if found.Err() != nil && found.Err() == mongo.ErrNoDocuments {
 		return &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
 	} else if found.Err() != nil {
-		log.Error(found.Err().Error())
-		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+		return &models.AppError{Code: models.DatabaseError, Message: found.Err().Error()}
 	}
 	updateQuery := bson.D{
 		{
@@ -130,7 +122,7 @@ func (m *MongoDB) AddJoinDate(userID string, date string) *models.AppError {
 	}
 	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
 	if err != nil {
-		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+		return &models.AppError{Code: models.DatabaseError, Message: err.Error()}
 	}
 	return nil
 }
@@ -147,8 +139,7 @@ func (m *MongoDB) AddLeaveDate(userID string, date string) *models.AppError {
 	if found.Err() != nil && found.Err() == mongo.ErrNoDocuments {
 		return &models.AppError{Code: models.UserNotFoundCode, Message: "User not found"}
 	} else if found.Err() != nil {
-		log.Error(found.Err().Error())
-		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+		return &models.AppError{Code: models.DatabaseError, Message: found.Err().Error()}
 	}
 	updateQuery := bson.D{
 		{
@@ -159,7 +150,7 @@ func (m *MongoDB) AddLeaveDate(userID string, date string) *models.AppError {
 	}
 	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
 	if err != nil {
-		return &models.AppError{Code: models.DatabaseError, Message: "Database Error"}
+		return &models.AppError{Code: models.DatabaseError, Message: err.Error()}
 	}
 	return nil
 }

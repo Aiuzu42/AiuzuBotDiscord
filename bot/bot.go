@@ -5,7 +5,6 @@ import (
 
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"github.com/aiuzu42/AiuzuBotDiscord/database"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -27,8 +26,7 @@ func SelectRepository(dbType string) error {
 	case "mongoDB":
 		repo = &database.MongoDB{}
 	default:
-		log.Warn("No database type selected or invalid type [" + dbType + "]")
-		return errors.New("No database type selected or invalid type")
+		return errors.New("No database type selected or invalid type [" + dbType + "]")
 	}
 	appErr := repo.InitDB(config.Config.DBConn)
 	if appErr != nil {
