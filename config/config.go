@@ -3,8 +3,8 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -39,14 +39,14 @@ const (
 
 // Config contains the bot configuration.
 var Config configuration
+var Loc *time.Location
 
 //InitConfig should be only used to load config at the start of the program, it panics if the config cannot be loaded for any reason.
-func InitConfig() {
+func InitConfig() error {
 	var err error
 	Config, err = loadConfig()
 	if err != nil {
-		fmt.Println(err.Error())
-		log.Panic(err.Error())
+		return err
 	}
 	switch Config.LogLevel {
 	case "debug":
@@ -54,6 +54,11 @@ func InitConfig() {
 	default:
 		log.SetLevel(log.InfoLevel)
 	}
+	Loc, err = time.LoadLocation("America/Mexico_City")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //ReloadConfig can be used to reload config at any point, if it fails to reload it keeps the old config and returns an error.

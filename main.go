@@ -10,7 +10,10 @@ import (
 
 func main() {
 	setupLog()
-	config.InitConfig()
+	err := config.InitConfig()
+	if err != nil {
+		log.Fatal("[main]Error loading configuration: " + err.Error())
+	}
 	app.StartApp()
 }
 
