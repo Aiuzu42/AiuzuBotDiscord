@@ -21,3 +21,4 @@ detalleSanciones {nombre o id}: mostrar el detalle de las sanciones del usuario
 
 Todos:
 say {msg}: El bot dice lo que el comando le indique y borra el mensaje original
+ultimatum {userID}: Se pasa al usuario con ese ID a ultimatum, se actualiza en DB, se le quitan todos los roles y se le asigna solo el rol de Ultimatum

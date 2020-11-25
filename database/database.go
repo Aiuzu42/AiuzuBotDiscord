@@ -25,6 +25,7 @@ type Databse interface {
 	IncreaseMessageCount(userID string) *dBError
 	AddJoinDate(userID string, date time.Time) (bool, *dBError)
 	AddLeaveDate(userID string, date time.Time) (bool, *dBError)
+	SetUltimatum(userID string) *dBError
 }
 
 type dBError struct {

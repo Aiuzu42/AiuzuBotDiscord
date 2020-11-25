@@ -63,3 +63,13 @@ func (m *Memory) AddLeaveDate(userID string, date time.Time) (bool, *dBError) {
 	}
 	return false, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
+
+func (m *Memory) SetUltimatum(userID string) *dBError {
+	for i := range m.db {
+		if userID == m.db[i].UserID {
+			m.db[i].Server.Ultimatum = true
+			return nil
+		}
+	}
+	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+}

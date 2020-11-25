@@ -54,10 +54,7 @@ func InitConfig() error {
 	default:
 		log.SetLevel(log.InfoLevel)
 	}
-	Loc, err = time.LoadLocation("America/Mexico_City")
-	if err != nil {
-		return err
-	}
+	Loc = time.FixedZone("UTC-6", -6*60*60)
 	return nil
 }
 

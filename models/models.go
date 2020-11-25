@@ -35,8 +35,8 @@ type Details struct {
 
 type ServerDetails struct {
 	MessageCount int      `bson:"messageCount"`
-	JoinDates    []string `bson:"joinDates"`
-	LeftDates    []string `bson:"leftDates"`
+	JoinDates    []string `bson:"joinDates,omitempty"`
+	LeftDates    []string `bson:"leftDates,omitempty"`
 	Ultimatum    bool     `bson:"ultimatum"`
 	WasModerator bool     `bson:"wasModerator"`
 }

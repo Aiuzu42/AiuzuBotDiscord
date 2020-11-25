@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	NO_AUTH = "No tienes permiso de usar ese comando"
+	NO_AUTH       = "No tienes permiso de usar ese comando"
+	GENERIC_ERROR = "Hubo un error al procesar el comando"
 )
 
 // Commands handler job is to pasrse new messages to update the user data and execute bot commands if appropiate.
@@ -45,6 +46,8 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			setStatus(s, m, r)
 		case "syncTodos":
 			syncDatabase(s, m)
+		case "ultimatum":
+			ultimatumCommand(s, m, args)
 		default:
 			if IsMod(m.Member.Roles, m.Author.ID) {
 				sendErrorResponse(s, m.ChannelID, "El comando que intentas usar no existe.")
@@ -233,5 +236,34 @@ func syncDatabase(s *discordgo.Session, m *discordgo.MessageCreate) {
 	_, err = s.ChannelMessageSend(m.ChannelID, "Sincronizacion terminada")
 	if err != nil {
 		log.Error("[syncDatabase]Error sending end message: " + err.Error())
+	}
+}
+
+func ultimatumCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[ultimatumCommand]User: " + m.Author.ID + " tried to use command sanctions without permission.")
+		sendErrorResponse(s, m.ChannelID, NO_AUTH)
+		return
+	}
+	if len(args) != 2 {
+		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!ultimatum {userID}")
+		return
+	}
+	dbErr := repo.SetUltimatum(args[1])
+	if dbErr != nil {
+		log.Error("[ultimatumCommand]Error updating ultimatum in database: " + dbErr.Message)
+		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		return
+	}
+	ult := []string{config.Config.RolUltimatum}
+	err := s.GuildMemberEdit(m.GuildID, args[1], ult)
+	if err != nil {
+		log.Error("[ultimatumCommand]Error setting roles: " + err.Error())
+		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		return
+	}
+	_, err = s.ChannelMessageSend(m.ChannelID, "Se movie a "+args[1]+" a Ultimatum")
+	if err != nil {
+		log.Error("[ultimatumCommand]Error sending success message: " + err.Error())
 	}
 }

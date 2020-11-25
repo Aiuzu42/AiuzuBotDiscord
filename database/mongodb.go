@@ -150,3 +150,24 @@ func (m *MongoDB) AddLeaveDate(userID string, date time.Time) (bool, *dBError) {
 	}
 	return user.Server.Ultimatum, nil
 }
+
+func (m *MongoDB) SetUltimatum(userID string) *dBError {
+	filter := bson.M{
+		"userID": userID,
+	}
+	updateQuery := bson.D{
+		{
+			Key: "$set", Value: bson.D{
+				{Key: "server.ultimatum", Value: true},
+			},
+		},
+	}
+	ur, err := m.collection.UpdateOne(context.TODO(), filter, updateQuery)
+	if err != nil {
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+	}
+	if ur.MatchedCount == 0 {
+		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	}
+	return nil
+}
