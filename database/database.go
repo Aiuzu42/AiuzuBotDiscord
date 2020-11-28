@@ -9,12 +9,17 @@ import (
 )
 
 const (
-	UserNotFoundCode          = 1
-	UserAlredyExistsCode      = 2
-	CantConnectToDatabaseCode = 3
-	DatabaseErrorCode         = 4
-	UserNotFoundMessage       = "User not found"
-	UserAlredyExistsMessage   = "User alredy Exists"
+	UserNotFoundCode             = 1
+	UserAlredyExistsCode         = 2
+	CantConnectToDatabaseCode    = 3
+	DatabaseErrorCode            = 4
+	WrongParametersCode          = 5
+	DecodingErrorCode            = 6
+	UserAlredyInUltimatumCode    = 7
+	UserNotFoundMessage          = "User not found"
+	UserAlredyExistsMessage      = "User alredy Exists"
+	WrongParametersMessage       = "Wrong parameters"
+	UserAlredyInUltimatumMessage = "User alredy was in Ultimatum"
 )
 
 //Database defines the methods required for a struct to be a valid database connection.
