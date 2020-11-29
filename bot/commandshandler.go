@@ -4,14 +4,16 @@ import (
 	"strings"
 
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
+	"github.com/aiuzu42/AiuzuBotDiscord/database"
 	db "github.com/aiuzu42/AiuzuBotDiscord/database"
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	NO_AUTH       = "No tienes permiso de usar ese comando"
-	GENERIC_ERROR = "Hubo un error al procesar el comando"
+	NO_AUTH        = "No tienes permiso de usar ese comando"
+	GENERIC_ERROR  = "Hubo un error al procesar el comando"
+	USER_NOT_FOUND = "No se encontro a ese usuario"
 )
 
 // Commands handler job is to pasrse new messages to update the user data and execute bot commands if appropiate.
@@ -47,7 +49,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		case "syncTodos":
 			syncDatabase(s, m)
 		case "ultimatum":
-			ultimatumCommand(s, m, args)
+			ultimatumCommand(s, m, st)
 		default:
 			if IsMod(m.Member.Roles, m.Author.ID) {
 				sendErrorResponse(s, m.ChannelID, "El comando que intentas usar no existe.")
@@ -239,31 +241,64 @@ func syncDatabase(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func ultimatumCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+func ultimatumCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 	if !IsMod(m.Member.Roles, m.Author.ID) {
 		log.Warn("[ultimatumCommand]User: " + m.Author.ID + " tried to use command sanctions without permission.")
 		sendErrorResponse(s, m.ChannelID, NO_AUTH)
 		return
 	}
-	if len(args) != 2 {
-		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!ultimatum {userID}")
+	arg, reason := argumentsHandler(st)
+	if arg == "" && reason == "" {
+		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!ultimatum {userID} [razon]")
 		return
 	}
-	dbErr := repo.SetUltimatum(args[1])
+	dbErr := repo.SetUltimatum(arg)
 	if dbErr != nil {
 		log.Error("[ultimatumCommand]Error updating ultimatum in database: " + dbErr.Message)
-		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
-		return
+		if dbErr.Code == database.UserNotFoundCode {
+			sendErrorResponse(s, m.ChannelID, USER_NOT_FOUND)
+			return
+		} else if dbErr.Code == database.UserAlredyInUltimatumCode {
+			sendErrorResponse(s, m.ChannelID, arg+" ya esta en Ultimatum o ha estado antes.")
+		} else {
+			sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+			return
+		}
 	}
 	ult := []string{config.Config.RolUltimatum}
-	err := s.GuildMemberEdit(m.GuildID, args[1], ult)
+	err := s.GuildMemberEdit(m.GuildID, arg, ult)
 	if err != nil {
 		log.Error("[ultimatumCommand]Error setting roles: " + err.Error())
 		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
 		return
 	}
-	_, err = s.ChannelMessageSend(m.ChannelID, "Se movie a "+args[1]+" a Ultimatum")
+	endMsg := "Se movió a <@" + arg + "> a Ultimatum"
+	log.Info(m.Author.ID + " movio a " + arg + " a Ultimatum.")
+	if reason == "" {
+		endMsg = endMsg + ". Recuerda poner la razon en el canal de <#" + config.Config.Channels.Ultimatum + ">"
+	}
+	_, err = s.ChannelMessageSend(m.ChannelID, endMsg)
 	if err != nil {
 		log.Error("[ultimatumCommand]Error sending success message: " + err.Error())
 	}
+	if reason != "" {
+		_, err = s.ChannelMessageSendEmbed(config.Config.Channels.Ultimatum, createMessageEmbedUltimatum(arg, reason))
+		if err != nil {
+			log.Error("[ultimatumCommand]Error sending notice message: " + err.Error())
+		}
+	}
+}
+
+func argumentsHandler(st string) (string, string) {
+	arg := ""
+	msg := ""
+	args := strings.Split(st, " ")
+	n := len(args)
+	if n == 2 {
+		arg = args[1]
+	} else if n > 2 {
+		arg = args[1]
+		msg = strings.Join(args[2:], " ")
+	}
+	return arg, msg
 }

@@ -15,6 +15,9 @@
     "owners" : [],
     "mods" : [],
     "admins" : [],
-    "fChannel" : "",
+    "channels" : {
+        "f" : "",
+        "ultimatum" : ""
+    },
     "rolUltimatum" : ""
 }

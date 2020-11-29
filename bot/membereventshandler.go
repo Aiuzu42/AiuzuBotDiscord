@@ -68,7 +68,7 @@ func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 	if ult {
 		msg = msg + " y era ULTIMATUM."
 	}
-	_, err := s.ChannelMessageSend(config.Config.FChannel, msg)
+	_, err := s.ChannelMessageSend(config.Config.Channels.F, msg)
 	if err != nil {
 		log.Warn("[MemberLeaveHandler]" + msg)
 		log.Error("[MemberLeaveHandler]Error sending message: " + err.Error() + msg)

@@ -110,3 +110,13 @@ func createMessageEmbedSanctions(user models.User) *discordgo.MessageEmbed {
 	me.Fields = fields
 	return &me
 }
+
+func createMessageEmbedUltimatum(id string, reason string) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Ultimatum"
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Se movio a Ultimatum a:", Value: "<@" + id + ">"})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Razón", Value: reason})
+	me.Fields = fields
+	return &me
+}

@@ -17,7 +17,7 @@ type configuration struct {
 	Owners       []string     `json:"owners"`
 	Mods         []string     `json:"mods"`
 	Admins       []string     `json:"admins"`
-	FChannel     string       `json:"fChannel"`
+	Channels     ChannelsInfo `json:"channels"`
 	RolUltimatum string       `json:"rolUltimatum"`
 }
 
@@ -31,6 +31,11 @@ type DBConnection struct {
 	User       string `json:"user"`
 	Pass       string `json:"pass"`
 	Options    string `json:"options"`
+}
+
+type ChannelsInfo struct {
+	F         string `json:"f"`
+	Ultimatum string `json:"ultimatum"`
 }
 
 const (
