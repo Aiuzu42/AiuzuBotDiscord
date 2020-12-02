@@ -19,6 +19,7 @@ type configuration struct {
 	Admins       []string     `json:"admins"`
 	Channels     ChannelsInfo `json:"channels"`
 	RolUltimatum string       `json:"rolUltimatum"`
+	CustomSays   []CustomSay  `json:"customSays"`
 }
 
 // DBConnections contains all the needed information to connect to a database.
@@ -36,6 +37,11 @@ type DBConnection struct {
 type ChannelsInfo struct {
 	F         string `json:"f"`
 	Ultimatum string `json:"ultimatum"`
+}
+
+type CustomSay struct {
+	CommandName string `json:"commandName"`
+	Channel     string `json:"channel"`
 }
 
 const (

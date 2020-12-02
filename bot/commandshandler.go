@@ -33,39 +33,49 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		r := []rune(m.Content)
 		st := string(r[pLen:])
 		args := strings.Split(st, " ")
-		switch args[0] {
-		case "reloadConfig":
-			reloadRolesCommand(s, m.ChannelID, m.Author.ID)
-		case "say":
-			sayCommand(s, m, r)
-		case "detallesFull":
-			fullDetailsCommand(s, m, args)
-		case "detalles":
-			detailsCommand(s, m, args)
-		case "detalleSanciones":
-			sanctionsCommand(s, m, args)
-		case "setStatus":
-			setStatus(s, m, r)
-		case "syncTodos":
-			syncDatabase(s, m)
-		case "ultimatum":
-			ultimatumCommand(s, m, st)
-		default:
-			if IsMod(m.Member.Roles, m.Author.ID) {
-				sendErrorResponse(s, m.ChannelID, "El comando que intentas usar no existe.")
+		wasCustom := false
+		for _, custom := range config.Config.CustomSays {
+			if custom.CommandName == args[0] {
+				wasCustom = true
+				sayCommand(s, m.ChannelID, custom.Channel, m.ID, st)
+				break
+			}
+		}
+		if !wasCustom {
+			switch args[0] {
+			case "reloadConfig":
+				reloadRolesCommand(s, m.ChannelID, m.Author.ID)
+			case "say":
+				sayCommand(s, m.ChannelID, m.ChannelID, m.ID, st)
+			case "detallesFull":
+				fullDetailsCommand(s, m, args)
+			case "detalles":
+				detailsCommand(s, m, args)
+			case "detalleSanciones":
+				sanctionsCommand(s, m, args)
+			case "setStatus":
+				setStatus(s, m, r)
+			case "syncTodos":
+				syncDatabase(s, m)
+			case "ultimatum":
+				ultimatumCommand(s, m, st)
+			default:
+				if IsMod(m.Member.Roles, m.Author.ID) {
+					sendErrorResponse(s, m.ChannelID, "El comando que intentas usar no existe.")
+				}
 			}
 		}
 	}
 
 }
 
-func sayCommand(s *discordgo.Session, m *discordgo.MessageCreate, r []rune) {
-	err := s.ChannelMessageDelete(m.ChannelID, m.ID)
+func sayCommand(s *discordgo.Session, originCh string, tarCh string, id string, st string) {
+	err := s.ChannelMessageDelete(originCh, id)
 	if err != nil {
 		log.Error("[sayCommand]Can't delete message: " + err.Error())
 	}
-	msg := string(r[pLen+4:])
-	_, err = s.ChannelMessageSend(m.ChannelID, msg)
+	msg := saySplit(st)
+	_, err = s.ChannelMessageSend(tarCh, msg)
 	if err != nil {
 		log.Error("[sayCommand]Can't send message: " + err.Error())
 	}
@@ -301,4 +311,11 @@ func argumentsHandler(st string) (string, string) {
 		msg = strings.Join(args[2:], " ")
 	}
 	return arg, msg
+}
+
+func saySplit(st string) string {
+	msg := ""
+	args := strings.Split(st, " ")
+	msg = strings.Join(args[1:], " ")
+	return msg
 }

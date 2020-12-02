@@ -19,5 +19,9 @@
         "f" : "",
         "ultimatum" : ""
     },
-    "rolUltimatum" : ""
+    "rolUltimatum" : "",
+    "customSays" : [{
+        "commandName" : "",
+        "channel" : ""
+    }]
 }
