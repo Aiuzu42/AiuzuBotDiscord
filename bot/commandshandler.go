@@ -37,7 +37,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		for _, custom := range config.Config.CustomSays {
 			if custom.CommandName == args[0] {
 				wasCustom = true
-				sayCommand(s, m.ChannelID, custom.Channel, m.ID, st)
+				customSayCommand(s, m, custom.Channel, st)
 				break
 			}
 		}
@@ -79,6 +79,15 @@ func sayCommand(s *discordgo.Session, originCh string, tarCh string, id string, 
 	if err != nil {
 		log.Error("[sayCommand]Can't send message: " + err.Error())
 	}
+}
+
+func customSayCommand(s *discordgo.Session, m *discordgo.MessageCreate, tarCh string, st string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[customSayCommand]User: " + m.Author.ID + " tried to use command customSayCommand without permission.")
+		sendErrorResponse(s, m.ChannelID, NO_AUTH)
+		return
+	}
+	sayCommand(s, m.ChannelID, tarCh, m.ID, st)
 }
 
 func updateUserData(m *discordgo.MessageCreate) {
