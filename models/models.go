@@ -20,7 +20,6 @@ type User struct {
 
 type Sanction struct {
 	Count           int       `bson:"count"`
-	LastMessage     string    `bson:"lastMessage"`
 	Aviso           bool      `bson:"aviso"`
 	SanctionDetails []Details `bson:"sanctionDetails"`
 }
@@ -39,6 +38,7 @@ type ServerDetails struct {
 	LeftDates    []string `bson:"leftDates,omitempty"`
 	Ultimatum    bool     `bson:"ultimatum"`
 	WasModerator bool     `bson:"wasModerator"`
+	LastMessage  string   `bson:"lastMessage"`
 }
 
 func (d Details) String() string {

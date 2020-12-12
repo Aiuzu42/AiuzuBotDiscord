@@ -32,6 +32,9 @@ func createMessageEmbedUserFull(user models.User) *discordgo.MessageEmbed {
 		fields = append(fields, &discordgo.MessageEmbedField{Name: "Primer aviso disponible?", Value: "SI"})
 	}
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "N. de mensajes", Value: strconv.Itoa(user.Server.MessageCount)})
+	if user.Server.LastMessage != "" {
+		fields = append(fields, &discordgo.MessageEmbedField{Name: "Ultimo mensaje", Value: user.Server.LastMessage})
+	}
 	if len(user.Server.JoinDates) > 0 {
 		chain := ""
 		for _, d := range user.Server.JoinDates {
@@ -80,6 +83,9 @@ func createMessageEmbedUser(user models.User) *discordgo.MessageEmbed {
 		fields = append(fields, &discordgo.MessageEmbedField{Name: "Primer aviso disponible?", Value: "SI"})
 	}
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "N. de mensajes", Value: strconv.Itoa(user.Server.MessageCount)})
+	if user.Server.LastMessage != "" {
+		fields = append(fields, &discordgo.MessageEmbedField{Name: "Ultimo mensaje", Value: user.Server.LastMessage})
+	}
 	if user.Server.Ultimatum {
 		fields = append(fields, &discordgo.MessageEmbedField{Name: "Ha estado en ultimatum?", Value: "SI"})
 	} else {
