@@ -13,7 +13,7 @@ type User struct {
 	Name         string        `bson:"name"`
 	FullName     string        `bson:"fullName"`
 	Nickname     string        `bson:"nickname"`
-	OldNicknames []string      `bson:"oldNicknames"`
+	OldNicknames []string      `bson:"oldNicknames,omitempty"`
 	Sanctions    Sanction      `bson:"sanctions"`
 	Server       ServerDetails `bson:"server"`
 }
@@ -21,7 +21,7 @@ type User struct {
 type Sanction struct {
 	Count           int       `bson:"count"`
 	Aviso           bool      `bson:"aviso"`
-	SanctionDetails []Details `bson:"sanctionDetails"`
+	SanctionDetails []Details `bson:"sanctionDetails,omitempty"`
 }
 
 type Details struct {

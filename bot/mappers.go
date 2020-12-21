@@ -26,7 +26,7 @@ func memberToLocalUser(m *discordgo.Member) (models.User, error) {
 	} else {
 		user.Server.AppendJoinDate(t)
 	}
-	if findIfExists(config.Config.RolUltimatum, m.Roles) {
+	if findIfExists(config.Config.Roles.Ultimatum, m.Roles) {
 		user.Server.Ultimatum = true
 	}
 	return user, nil
@@ -50,7 +50,7 @@ func userAndMemberToLocalUser(u *discordgo.User, m *discordgo.Member) (models.Us
 		} else {
 			user.Server.AppendJoinDate(t)
 		}
-		if findIfExists(config.Config.RolUltimatum, m.Roles) {
+		if findIfExists(config.Config.Roles.Ultimatum, m.Roles) {
 			user.Server.Ultimatum = true
 		}
 	}

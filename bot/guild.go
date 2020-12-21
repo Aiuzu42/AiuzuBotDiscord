@@ -146,3 +146,26 @@ func findIfExists(a string, b []string) bool {
 	}
 	return false
 }
+
+func Is_Q_A_B(roles []string) bool {
+	return arrayFindIfExists(roles, []string{config.Config.Roles.Q, config.Config.Roles.A, config.Config.Roles.B})
+}
+
+func Is_Ultimatum_Silenciado(roles []string) bool {
+	return arrayFindIfExists(roles, []string{config.Config.Roles.Ultimatum, config.Config.Roles.Silenced})
+}
+
+func GetMemberInfo(s *discordgo.Session, userID string) (*discordgo.Member, error) {
+	return s.GuildMember(config.Config.Server, userID)
+}
+
+func DowngradeToC(roles []string) []string {
+	newRoles := []string{}
+	for _, role := range roles {
+		if role != config.Config.Roles.Q && role != config.Config.Roles.A && role != config.Config.Roles.B && role != config.Config.Roles.C {
+			newRoles = append(newRoles, role)
+		}
+	}
+	newRoles = append(newRoles, config.Config.Roles.C)
+	return newRoles
+}

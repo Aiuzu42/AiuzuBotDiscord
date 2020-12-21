@@ -68,6 +68,29 @@ func (m *Memory) SetUltimatum(userID string) *dBError {
 	for i := range m.db {
 		if userID == m.db[i].UserID {
 			m.db[i].Server.Ultimatum = true
+			m.db[i].Sanctions.Aviso = true
+			return nil
+		}
+	}
+	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+}
+
+func (m *Memory) IncreaseSanction(userID string, reason string, mod string, modName string, command string) *dBError {
+	for i := range m.db {
+		if userID == m.db[i].UserID {
+			m.db[i].Sanctions.Count = m.db[i].Sanctions.Count + 1
+			details := models.Details{AdminID: mod, AdminName: modName, Command: command, Date: time.Now().Format(time.RFC822), Notes: reason}
+			m.db[i].Sanctions.SanctionDetails = append(m.db[i].Sanctions.SanctionDetails, details)
+			return nil
+		}
+	}
+	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+}
+
+func (m *Memory) SetPrimerAviso(userID string) *dBError {
+	for i := range m.db {
+		if userID == m.db[i].UserID {
+			m.db[i].Sanctions.Aviso = true
 			return nil
 		}
 	}

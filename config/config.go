@@ -10,16 +10,16 @@ import (
 )
 
 type configuration struct {
-	Server       string       `json:"server"`
-	Token        string       `json:"token"`
-	LogLevel     string       `json:"logLevel"`
-	DBConn       DBConnection `json:"dbConnection"`
-	Owners       []string     `json:"owners"`
-	Mods         []string     `json:"mods"`
-	Admins       []string     `json:"admins"`
-	Channels     ChannelsInfo `json:"channels"`
-	RolUltimatum string       `json:"rolUltimatum"`
-	CustomSays   []CustomSay  `json:"customSays"`
+	Server     string       `json:"server"`
+	Token      string       `json:"token"`
+	LogLevel   string       `json:"logLevel"`
+	DBConn     DBConnection `json:"dbConnection"`
+	Owners     []string     `json:"owners"`
+	Mods       []string     `json:"mods"`
+	Admins     []string     `json:"admins"`
+	Channels   ChannelsInfo `json:"channels"`
+	Roles      RolesInfo    `json:"roles"`
+	CustomSays []CustomSay  `json:"customSays"`
 }
 
 // DBConnections contains all the needed information to connect to a database.
@@ -35,13 +35,23 @@ type DBConnection struct {
 }
 
 type ChannelsInfo struct {
-	F         string `json:"f"`
-	Ultimatum string `json:"ultimatum"`
+	F           string `json:"f"`
+	Ultimatum   string `json:"ultimatum"`
+	Sancionados string `json:"sancionados"`
 }
 
 type CustomSay struct {
 	CommandName string `json:"commandName"`
 	Channel     string `json:"channel"`
+}
+
+type RolesInfo struct {
+	Ultimatum string `json:"ultimatum"`
+	Q         string `json:"q"`
+	A         string `json:"a"`
+	B         string `json:"b"`
+	C         string `json:"c"`
+	Silenced  string `json:"silenced"`
 }
 
 const (

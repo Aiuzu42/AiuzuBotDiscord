@@ -174,6 +174,63 @@ func (m *MongoDB) SetUltimatum(userID string) *dBError {
 				{Key: "server.ultimatum", Value: true},
 			},
 		},
+		{
+			Key: "$set", Value: bson.D{
+				{Key: "sanctions.aviso", Value: true},
+			},
+		},
+	}
+	_, err := m.collection.UpdateOne(context.TODO(), filter, updateQuery)
+	if err != nil {
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+	}
+	return nil
+}
+
+func (m *MongoDB) IncreaseSanction(userID string, reason string, mod string, modName string, command string) *dBError {
+	details := models.Details{AdminID: mod, AdminName: modName, Command: command, Date: time.Now().Format(time.RFC822), Notes: reason}
+	query := bson.M{
+		"userID": userID,
+	}
+	updateQuery := bson.D{
+		{
+			Key: "$inc", Value: bson.D{
+				{Key: "sanctions.count", Value: 1},
+			},
+		},
+		{
+			Key: "$push", Value: bson.D{
+				{Key: "sanctions.sanctionDetails", Value: details},
+			},
+		},
+	}
+	ur, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	if err != nil {
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+	}
+	if ur.MatchedCount == 0 {
+		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	}
+	return nil
+}
+
+func (m *MongoDB) SetPrimerAviso(userID string) *dBError {
+	user, dbErr := m.GetUser(userID, "")
+	if dbErr != nil {
+		return dbErr
+	}
+	if user.Sanctions.Aviso {
+		return &dBError{Code: PrimerAvisoUnavailable, Message: PrimerAvisoUnavailableMessage}
+	}
+	filter := bson.M{
+		"userID": userID,
+	}
+	updateQuery := bson.D{
+		{
+			Key: "$set", Value: bson.D{
+				{Key: "sanctions.aviso", Value: true},
+			},
+		},
 	}
 	_, err := m.collection.UpdateOne(context.TODO(), filter, updateQuery)
 	if err != nil {

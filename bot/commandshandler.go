@@ -59,6 +59,12 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				syncDatabase(s, m)
 			case "ultimatum":
 				ultimatumCommand(s, m, st)
+			case "primerAviso":
+				primerAvisoCommand(s, m, st)
+			case "sancionFuerte":
+				sancionFuerteCommand(s, m, st)
+			case "sancion":
+				sancionCommand(s, m, st)
 			default:
 				if IsMod(m.Member.Roles, m.Author.ID) {
 					sendErrorResponse(s, m.ChannelID, "El comando que intentas usar no existe.")
@@ -284,7 +290,7 @@ func ultimatumCommand(s *discordgo.Session, m *discordgo.MessageCreate, st strin
 			return
 		}
 	}
-	ult := []string{config.Config.RolUltimatum}
+	ult := []string{config.Config.Roles.Ultimatum}
 	err := s.GuildMemberEdit(m.GuildID, arg, ult)
 	if err != nil {
 		log.Error("[ultimatumCommand]Error setting roles: " + err.Error())
@@ -327,4 +333,175 @@ func saySplit(st string) string {
 	args := strings.Split(st, " ")
 	msg = strings.Join(args[1:], " ")
 	return msg
+}
+
+func sancionFuerteCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[sancionFuerteCommand]User: " + m.Author.ID + " tried to use command sancionFuerteCommand without permission.")
+		sendErrorResponse(s, m.ChannelID, NO_AUTH)
+		return
+	}
+	arg, reason := argumentsHandler(st)
+	if arg == "" && reason == "" {
+		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!sancionFuerte {userID} [razon]")
+		return
+	}
+	dbErr := repo.SetUltimatum(arg)
+	if dbErr != nil {
+		log.Error("[sancionFuerteCommand]Error updating ultimatum in database: " + dbErr.Message)
+		if dbErr.Code == database.UserNotFoundCode {
+			sendErrorResponse(s, m.ChannelID, USER_NOT_FOUND)
+			return
+		} else if dbErr.Code != database.UserAlredyInUltimatumCode {
+			sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+			return
+		}
+	}
+	ult := []string{config.Config.Roles.Ultimatum}
+	err := s.GuildMemberEdit(m.GuildID, arg, ult)
+	if err != nil {
+		log.Error("[sancionFuerteCommand]Error setting roles: " + err.Error())
+		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		return
+	}
+	dbErr = repo.IncreaseSanction(arg, reason, m.Author.ID, m.Author.Username, "sancionFuerte")
+	if dbErr != nil {
+		log.Error("[sancionFuerteCommand]Error increasing user sanctions: " + dbErr.Message)
+		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		return
+	}
+	dbErr = repo.SetPrimerAviso(arg)
+	if dbErr != nil && dbErr.Code != database.PrimerAvisoUnavailable {
+		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		return
+	}
+	endMsg := "Se aplico una sancion fuerte a <@" + arg + ">, razon: " + reason
+	_, err = s.ChannelMessageSend(m.ChannelID, endMsg)
+	if err != nil {
+		log.Error("[sancionFuerteCommand]Error sending success message: " + err.Error())
+	}
+	userData, dbErr := repo.GetUser(arg, "")
+	if dbErr != nil {
+		log.Error("[sancionFuerteCommand]Error getting user data: " + dbErr.Message)
+	}
+	_, err = s.ChannelMessageSendEmbed(config.Config.Channels.Sancionados, createMessageEmbedSancionFuerte(arg, userData.FullName, reason, userData.Sanctions.Count))
+	if err != nil {
+		log.Error("[sancionFuerteCommand]Error sending success message 2: " + err.Error())
+	}
+}
+
+func sancionCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[sancionCommand]User: " + m.Author.ID + " tried to use command sancionCommand without permission.")
+		sendErrorResponse(s, m.ChannelID, NO_AUTH)
+		return
+	}
+	arg, reason := argumentsHandler(st)
+	if arg == "" && reason == "" {
+		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!sancion {userID} [razon]")
+		return
+	}
+	memberData, err := GetMemberInfo(s, arg)
+	if err != nil {
+		log.Error("[sancionCommand]Error getting user data from API: " + err.Error())
+		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		return
+	}
+	userData, dbErr := repo.GetUser(arg, "")
+	if dbErr != nil {
+		log.Error("[sancionCommand]Error getting user data: " + dbErr.Message)
+		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		return
+	}
+	if !userData.Sanctions.Aviso {
+		_, err := s.ChannelMessageSend(m.ChannelID, "<@"+arg+"> Aun tiene posibilidad de primer aviso. Considera primero darle su primer aviso con ai!primerAviso antes de sancionar")
+		if err != nil {
+			log.Error("[sancionCommand]Error sending ban needed message: " + err.Error())
+		}
+		return
+	}
+	action := ""
+	if userData.Sanctions.Count >= 2 {
+		action = "Se mando a Ultimatum por tener mas de 3 sanciones"
+		err = s.GuildMemberEdit(config.Config.Server, arg, []string{config.Config.Roles.Ultimatum})
+		if err != nil {
+			log.Error("[sancionCommand]Error setting user roles 1: " + err.Error())
+			sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+			return
+		}
+		dbErr = repo.SetUltimatum(arg)
+		if dbErr != nil && dbErr.Code != database.UserAlredyInUltimatumCode {
+			log.Error("[sancionCommand]Error setting user to ultimatum in db: " + err.Error())
+			sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+			return
+		}
+	} else if Is_Ultimatum_Silenciado(memberData.Roles) {
+		action = "Se aplico sanción y se debe de banear"
+		_, err := s.ChannelMessageSend(m.ChannelID, "El usuario ya esta en ultimatum o silenciado!! Se debe de banear.")
+		if err != nil {
+			log.Error("[sancionCommand]Error sending ban needed message: " + err.Error())
+		}
+	} else if Is_Q_A_B(memberData.Roles) {
+		action = "Se bajo a C y aplico sanción"
+		nRoles := DowngradeToC(memberData.Roles)
+		err = s.GuildMemberEdit(config.Config.Server, arg, nRoles)
+		if err != nil {
+			log.Error("[sancionCommand]Error setting user roles 2: " + err.Error())
+			sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+			return
+		}
+	} else {
+		action = "Se aplico sanción y se silenció"
+		err = s.GuildMemberEdit(config.Config.Server, arg, []string{config.Config.Roles.Silenced})
+		if err != nil {
+			log.Error("[sancionCommand]Error silencing user: " + err.Error())
+			sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+			return
+		}
+	}
+	dbErr = repo.IncreaseSanction(arg, reason, m.Author.ID, m.Author.Username, "sancion")
+	if dbErr != nil {
+		log.Error("[sancionCommand]Error increasing user sanctions: " + dbErr.Message)
+		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		return
+	}
+	_, err = s.ChannelMessageSend(m.ChannelID, "Se aplico una sancion a: <@"+arg+">")
+	if err != nil {
+		log.Error("[sancionCommand]Error sending success message: " + err.Error())
+	}
+	_, err = s.ChannelMessageSendEmbed(config.Config.Channels.Sancionados, createMessageEmbedSancion(arg, userData.FullName, reason, userData.Sanctions.Count+1, action))
+	if err != nil {
+		log.Error("[sancionCommand]Error sending success message 2: " + err.Error())
+	}
+}
+
+func primerAvisoCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[primerAvisoCommand]User: " + m.Author.ID + " tried to use command primerAvisoCommand without permission.")
+		sendErrorResponse(s, m.ChannelID, NO_AUTH)
+		return
+	}
+	arg, reason := argumentsHandler(st)
+	if arg == "" && reason == "" {
+		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!primerAviso {userID} [razon]")
+		return
+	}
+	dbErr := repo.SetPrimerAviso(arg)
+	if dbErr != nil {
+		if dbErr.Code == database.PrimerAvisoUnavailable {
+			_, err := s.ChannelMessageSend(m.ChannelID, "A ese usuario ya se le habia dado primer aviso, toca sanción.")
+			if err != nil {
+				log.Error("[primerAvisoCommand]Error sending primer aviso unavailable message: " + err.Error())
+			}
+		} else if dbErr.Code == database.UserNotFoundCode {
+			sendErrorResponse(s, m.ChannelID, USER_NOT_FOUND)
+		} else {
+			sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		}
+		return
+	}
+	_, err := s.ChannelMessageSend(m.ChannelID, "Se le aplico correctamente primer aviso a <@"+arg+">")
+	if err != nil {
+		log.Error("[primerAvisoCommand]Error sending success message: " + err.Error())
+	}
 }

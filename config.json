@@ -17,9 +17,17 @@
     "admins" : [],
     "channels" : {
         "f" : "",
-        "ultimatum" : ""
+        "ultimatum" : "",
+        "sancionados" : ""
     },
-    "rolUltimatum" : "",
+    "roles" : {
+        "ultimatum" : "",
+        "q" : "",
+        "a" : "",
+        "b" : "",
+        "c" : "",
+        "silenced" : ""
+    },
     "customSays" : [{
         "commandName" : "",
         "channel" : ""

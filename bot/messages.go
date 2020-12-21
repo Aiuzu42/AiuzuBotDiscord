@@ -126,3 +126,41 @@ func createMessageEmbedUltimatum(id string, reason string) *discordgo.MessageEmb
 	me.Fields = fields
 	return &me
 }
+
+func createMessageEmbedSancionFuerte(id string, fullName string, reason string, n int) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Sancion fuerte aplicada"
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Sancionado:", Value: fullName})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "ID:", Value: id})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Razón", Value: reason})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Acción", Value: "Movido a Ultimatum, numero de sanciones incrementado"})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Sanciones totales", Value: strconv.Itoa(n)})
+	me.Fields = fields
+	return &me
+}
+
+func createMessageEmbedPrimerAviso(id string, fullName string, reason string) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Primer aviso aplicado"
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Sancionado:", Value: fullName})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "ID:", Value: id})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Razón", Value: reason})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Acción", Value: "Se aplico primer aviso"})
+	me.Fields = fields
+	return &me
+}
+
+func createMessageEmbedSancion(id string, fullName string, reason string, n int, action string) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Sancion normal aplicada"
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Sancionado:", Value: fullName})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "ID:", Value: id})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Razón", Value: reason})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Acción", Value: action})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Sanciones totales", Value: strconv.Itoa(n)})
+	me.Fields = fields
+	return &me
+}
