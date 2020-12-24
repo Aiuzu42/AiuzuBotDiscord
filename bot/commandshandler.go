@@ -65,6 +65,8 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				sancionFuerteCommand(s, m, st)
 			case "sancion":
 				sancionCommand(s, m, st)
+			case "ayuda":
+				ayudaCommand(s, m, st)
 			default:
 				if IsMod(m.Member.Roles, m.Author.ID) {
 					sendErrorResponse(s, m.ChannelID, "El comando que intentas usar no existe.")
@@ -503,5 +505,117 @@ func primerAvisoCommand(s *discordgo.Session, m *discordgo.MessageCreate, st str
 	_, err := s.ChannelMessageSend(m.ChannelID, "Se le aplico correctamente primer aviso a <@"+arg+">")
 	if err != nil {
 		log.Error("[primerAvisoCommand]Error sending success message: " + err.Error())
+	}
+}
+
+func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
+	var level int
+	if IsOwner(m.Author.ID) {
+		level = 3
+	} else if IsAdmin(m.Member.Roles, m.Author.ID) {
+		level = 2
+	} else if IsMod(m.Member.Roles, m.Author.ID) {
+		level = 1
+	} else {
+		level = 0
+	}
+	if st == "ayuda" {
+		response := "say"
+		if level >= 1 {
+			response = response + "\ndetallesFull\ndetalles\ndetalleSanciones\nultimatum\nprimerAviso\nsancion\nsancionFuerte"
+		}
+		if level >= 3 {
+			response = response + "\nsyncTodos\nsetStatus\nreloadConfig"
+		}
+		_, err := s.ChannelMessageSendEmbed(m.ChannelID, createMessageGeneralHelp(response))
+		if err != nil {
+			log.Error("[ayudaCommand]Error sending general help message: " + err.Error())
+		}
+		return
+	}
+	command := saySplit(st)
+	var desc string
+	var synt string
+	permError := false
+	switch command {
+	case "reloadConfig":
+		if level < 3 {
+			permError = true
+		}
+		desc = "Carga modificaciones realizadas al archivo de configuración"
+		synt = "ai!reloadConfig"
+	case "say":
+		desc = "El bot dice lo que le pidas y borra el mensaje original"
+		synt = "ai!say {mensaje}"
+	case "detallesFull":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Muestra todos los detalles del usuario, excepto el desglose de las sanciones"
+		synt = "ai!detallesFull {nombre_con_identificador o id}"
+	case "detalles":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Muestra los detalles basicos de un usuario"
+		synt = "ai!detalles {nombre_con_identificador o id}"
+	case "detalleSanciones":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Muestra el detalle de las sanciones del usuario"
+		synt = "ai!detalleSanciones {nombre_con_identificador o id}"
+	case "setStatus":
+		if level < 3 {
+			permError = true
+		}
+		desc = "Actualiza el estatus del bot y borra el mensaje original"
+		synt = "ai!setStatus {status}"
+	case "syncTodos":
+		if level < 3 {
+			permError = true
+		}
+		desc = "Revisa todos los usuarios del servidor y agrega a base de datos a los que no esten registrados, operacion pesada"
+		synt = "ai!syncTodos"
+	case "ultimatum":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Se pasa al usuario con ese ID a ultimatum, se registra en nuestra base de datos, se le quitan todos los roles y se le asigna solo el rol de Ultimatum"
+		synt = "ai!ultimatum {userID} [razon]"
+	case "primerAviso":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Si tiene derecho a primer aviso se aplica y notifica, si no lo tiene se notifica que se debe sancionar"
+		synt = "ai!primerAviso {userID} [razon]"
+	case "sancionFuerte":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Se aplica una sancion fuerte y se pasa a ultimatum, AiuzuBot notifica de esto en el canal apropiado. Se registra la sanción."
+		synt = "ai!sancion {userID} [razon]"
+	case "sancion":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Se aplica una sancion fuerte, los detalles de esto dependen del caso especifico, AiuzuBot notifica de esto en el canal apropiado. Se registra la sanción."
+		synt = "ai!sancion {id} [razon]"
+	case "ayuda":
+		desc = "El comando de ayuda te explica como usar los comandos de AiuzuBot y que hace cada uno."
+		synt = "ai!ayuda [comando]"
+	default:
+		permError = true
+	}
+	if permError {
+		_, err := s.ChannelMessageSend(m.ChannelID, "No encuentro el comando "+command+" (o no tienes permisos :v)")
+		if err != nil {
+			log.Error("[ayudaCommand]Error sending failed message: " + err.Error())
+		}
+		return
+	}
+	_, err := s.ChannelMessageSendEmbed(m.ChannelID, createMessageCommandHelp(command, desc, synt))
+	if err != nil {
+		log.Error("[ayudaCommand]Error sending help message: " + err.Error())
 	}
 }

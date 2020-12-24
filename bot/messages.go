@@ -164,3 +164,24 @@ func createMessageEmbedSancion(id string, fullName string, reason string, n int,
 	me.Fields = fields
 	return &me
 }
+
+func createMessageGeneralHelp(commands string) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Ayuda de AiuzuBot"
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Comandos disponibles:", Value: commands})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Mas ayuda:", Value: "Para obtener mas informacion de cada comando usa:\nai!ayuda nombre_del_comando"})
+	me.Fields = fields
+	return &me
+}
+
+func createMessageCommandHelp(command string, desc string, synt string) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Ayuda de " + command
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Descripcion:", Value: desc})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Syntaxis:", Value: synt})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Notas:", Value: "Si algo esta entre {} significa que es obligatorio, si algo esta entre [] significa que es opcional."})
+	me.Fields = fields
+	return &me
+}
