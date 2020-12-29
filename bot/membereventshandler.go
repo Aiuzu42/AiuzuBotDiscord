@@ -15,27 +15,23 @@ func NewMemberHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 		return
 	}
 	_, dbErr := repo.GetUser(m.Member.User.ID, "")
-	if dbErr != nil && dbErr.Code == db.UserAlredyExistsCode {
-		ja, err := m.Member.JoinedAt.Parse()
-		if err != nil {
-			log.Error("[NewMemberHandler]Error parsing join date for user [" + m.Member.User.ID + "]: " + err.Error())
-			return
-		}
-		_, dbErr = repo.AddJoinDate(m.Member.User.ID, ja)
-		if dbErr != nil {
-			log.Error("[NewMemberHandler]Error adding join date: " + dbErr.Message)
-		}
-	} else if dbErr != nil {
-		log.Error("[NewMemberHandler]Database error: " + dbErr.Message)
-	} else {
+	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		user, err := memberToLocalUser(m.Member)
 		if err != nil {
-			log.Error("[NewMemberHandler]Unable to create user: " + err.Error())
+			log.Error("[NewMemberHandler][" + m.User.ID + "] Unable to create user: " + err.Error())
 			return
 		}
 		dbErr := repo.AddUser(user)
 		if dbErr != nil {
-			log.Error("[NewMemberHandler]Error adding user to database " + dbErr.Message)
+			log.Error("[NewMemberHandler][" + m.User.ID + "] Error adding user to database " + dbErr.Message)
+		}
+	} else if dbErr != nil {
+		log.Error("[NewMemberHandler][" + m.User.ID + "] Database error: " + dbErr.Message)
+	} else {
+		ja := time.Now()
+		_, dbErr = repo.AddJoinDate(m.Member.User.ID, ja)
+		if dbErr != nil {
+			log.Error("[NewMemberHandler]Error adding join date: " + dbErr.Message)
 		}
 	}
 }
