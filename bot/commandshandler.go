@@ -67,6 +67,8 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				sancionCommand(s, m, st)
 			case "ayuda":
 				ayudaCommand(s, m, st)
+			case "actualizar":
+				actualizarCommand(s, m, st)
 			default:
 				if IsMod(m.Member.Roles, m.Author.ID) {
 					sendErrorResponse(s, m.ChannelID, "El comando que intentas usar no existe.")
@@ -126,7 +128,7 @@ func fullDetailsCommand(s *discordgo.Session, m *discordgo.MessageCreate, args [
 		return
 	}
 	if len(args) != 2 {
-		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!details {user}")
+		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!detallesFull {user}")
 		return
 	}
 	user, dbErr := repo.GetUser(args[1], args[1])
@@ -150,7 +152,7 @@ func detailsCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []str
 		return
 	}
 	if len(args) != 2 {
-		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!details {user}")
+		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!detalles {user}")
 		return
 	}
 	user, dbErr := repo.GetUser(args[1], args[1])
@@ -314,27 +316,6 @@ func ultimatumCommand(s *discordgo.Session, m *discordgo.MessageCreate, st strin
 			log.Error("[ultimatumCommand]Error sending notice message: " + err.Error())
 		}
 	}
-}
-
-func argumentsHandler(st string) (string, string) {
-	arg := ""
-	msg := ""
-	args := strings.Split(st, " ")
-	n := len(args)
-	if n == 2 {
-		arg = args[1]
-	} else if n > 2 {
-		arg = args[1]
-		msg = strings.Join(args[2:], " ")
-	}
-	return arg, msg
-}
-
-func saySplit(st string) string {
-	msg := ""
-	args := strings.Split(st, " ")
-	msg = strings.Join(args[1:], " ")
-	return msg
 }
 
 func sancionFuerteCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
@@ -522,7 +503,7 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 	if st == "ayuda" {
 		response := "say"
 		if level >= 1 {
-			response = response + "\ndetallesFull\ndetalles\ndetalleSanciones\nultimatum\nprimerAviso\nsancion\nsancionFuerte"
+			response = response + "\ndetallesFull\ndetalles\ndetalleSanciones\nultimatum\nprimerAviso\nsancion\nsancionFuerte\nactualizar"
 		}
 		if level >= 3 {
 			response = response + "\nsyncTodos\nsetStatus\nreloadConfig"
@@ -601,6 +582,12 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 		}
 		desc = "Se aplica una sancion fuerte, los detalles de esto dependen del caso especifico, AiuzuBot notifica de esto en el canal apropiado. Se registra la sanción."
 		synt = "ai!sancion {id} [razon]"
+	case "actualizar":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Actualiza el nombre y el apodo del usuario en caso de que se encuentre desactualizado."
+		synt = "ai!actualizar {id}"
 	case "ayuda":
 		desc = "El comando de ayuda te explica como usar los comandos de AiuzuBot y que hace cada uno."
 		synt = "ai!ayuda [comando]"
@@ -617,5 +604,38 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 	_, err := s.ChannelMessageSendEmbed(m.ChannelID, createMessageCommandHelp(command, desc, synt))
 	if err != nil {
 		log.Error("[ayudaCommand]Error sending help message: " + err.Error())
+	}
+}
+
+func actualizarCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[actualizarCommand]User: " + m.Author.ID + " tried to use command actualizarCommand without permission.")
+		sendErrorResponse(s, m.ChannelID, NO_AUTH)
+		return
+	}
+	arg, ext := argumentsHandler(st)
+	if arg == "" || ext != "" {
+		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!actualizar {userID}")
+		return
+	}
+	mem, err := GetMemberInfo(s, arg)
+	if err != nil {
+		log.Error("[actualizarCommand]Error getting member info: " + err.Error())
+		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		return
+	}
+	upd, err := updateUserNames(mem.User.ID, mem.Nick, mem.User.Username, mem.User.Discriminator)
+	if err != nil {
+		log.Error("[actualizarCommand]Error updating info: " + err.Error())
+		sendErrorResponse(s, m.ChannelID, GENERIC_ERROR)
+		return
+	}
+	success := "Ya estaba actualizado."
+	if upd {
+		success = "Se actualizo correctamente!"
+	}
+	_, err = s.ChannelMessageSend(m.ChannelID, success)
+	if err != nil {
+		log.Error("[actualizarCommand]Error sending success message: " + err.Error())
 	}
 }

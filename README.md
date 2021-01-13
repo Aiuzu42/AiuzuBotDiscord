@@ -20,6 +20,7 @@ Mod:
 detallesFull {nombre o id}: Muestra todos los detalles del usuario, excepto el desglose de las sanciones
 detalles {nombre o id}: Muestra los detalles basicos de un usuario
 detalleSanciones {nombre o id}: mostrar el detalle de las sanciones del usuario
+actualizar {id}: Actualiza el nombre, identificador y apodo del usuario en caso de que no esten actualizados
 ultimatum {userID} [razon]: Se pasa al usuario con ese ID a ultimatum, se actualiza en DB, se le quitan todos los roles y se le asigna solo el rol de Ultimatum
 primerAviso {userID} [razon]: Si tiene derecho a primer aviso se aplica y notifica, si no lo tiene se notifica
 sancion {id} [razon]: Se aplica una sancion fuerte y se pasa a ultimatum, AiuzuBot notifica de esto en el canal apropiado. Se registra la sanción.

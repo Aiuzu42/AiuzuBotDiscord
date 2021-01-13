@@ -12,6 +12,7 @@ type User struct {
 	UserID       string        `bson:"userID"`
 	Name         string        `bson:"name"`
 	FullName     string        `bson:"fullName"`
+	OldNames     []string      `bson:"oldNames,omitempty"`
 	Nickname     string        `bson:"nickname"`
 	OldNicknames []string      `bson:"oldNicknames,omitempty"`
 	Sanctions    Sanction      `bson:"sanctions"`

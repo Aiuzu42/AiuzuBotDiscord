@@ -29,6 +29,7 @@ func StartApp() {
 	b.AddHandler(bot.CommandsHandler)
 	b.AddHandler(bot.NewMemberHandler)
 	b.AddHandler(bot.MemberLeaveHandler)
+	b.AddHandler(bot.MemberUpdateHandler)
 	err = b.Open()
 	if err != nil {
 		log.Fatal("[StartApp]Error opening Discord websocket connection: " + err.Error())

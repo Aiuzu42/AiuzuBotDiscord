@@ -70,3 +70,14 @@ func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 		log.Error("[MemberLeaveHandler]Error sending message: " + err.Error() + msg)
 	}
 }
+
+func MemberUpdateHandler(s *discordgo.Session, m *discordgo.GuildMemberUpdate) {
+	if m.GuildID != config.Config.Server {
+		return
+	}
+	log.Info("Member event update")
+	_, err := updateUserNames(m.Member.User.ID, m.Member.Nick, m.Member.User.Username, m.Member.User.Discriminator)
+	if err != nil {
+		log.Error("[MemberUpdateHandler]" + err.Error())
+	}
+}

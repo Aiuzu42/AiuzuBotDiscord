@@ -13,8 +13,10 @@ import (
 )
 
 type MongoDB struct {
-	client     *mongo.Client
-	collection *mongo.Collection
+	client      *mongo.Client
+	collection  *mongo.Collection
+	updateQuery bson.D
+	queryStatus bool
 }
 
 // InitDB start the mongoDB connection initializing the client and collection pointers.
@@ -237,4 +239,34 @@ func (m *MongoDB) SetPrimerAviso(userID string) *dBError {
 		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
 	return nil
+}
+
+func (m *MongoDB) UpdateUser(userID string) *dBError {
+	if !m.queryStatus {
+		return &dBError{Code: WrongParametersCode, Message: WrongParametersMessage}
+	}
+	filter := bson.M{
+		"userID": userID,
+	}
+	ur, err := m.collection.UpdateOne(context.TODO(), filter, m.updateQuery)
+	if err != nil {
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+	}
+	if ur.MatchedCount == 0 {
+		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	}
+	m.ClearUpdateQuery()
+	return nil
+}
+
+func (m *MongoDB) AddToUpdateQuery(t string, key string, value string) {
+	d := bson.D{{Key: key, Value: value}}
+	e := bson.E{Key: t, Value: d}
+	m.updateQuery = append(m.updateQuery, e)
+	m.queryStatus = true
+}
+
+func (m *MongoDB) ClearUpdateQuery() {
+	m.updateQuery = bson.D{}
+	m.queryStatus = false
 }

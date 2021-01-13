@@ -35,6 +35,9 @@ type Databse interface {
 	SetUltimatum(userID string) *dBError
 	IncreaseSanction(userID string, reason string, mod string, modName string, command string) *dBError
 	SetPrimerAviso(userID string) *dBError
+	UpdateUser(userID string) *dBError
+	AddToUpdateQuery(t string, key string, value string)
+	ClearUpdateQuery()
 }
 
 type dBError struct {

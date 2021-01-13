@@ -8,7 +8,9 @@ import (
 )
 
 type Memory struct {
-	db []models.User
+	db          []models.User
+	updateQuery map[string]string
+	queryStatus bool
 }
 
 func (m *Memory) InitDB(c config.DBConnection) *dBError {
@@ -95,4 +97,37 @@ func (m *Memory) SetPrimerAviso(userID string) *dBError {
 		}
 	}
 	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+}
+
+func (m *Memory) UpdateUser(userID string) *dBError {
+	if !m.queryStatus {
+		return &dBError{Code: WrongParametersCode, Message: WrongParametersMessage}
+	}
+	for i := range m.db {
+		if userID == m.db[i].UserID {
+			if val, ok := m.updateQuery["nickname"]; ok {
+				m.db[i].Nickname = val
+			}
+			if val, ok := m.updateQuery["oldNicknames"]; ok {
+				m.db[i].OldNicknames = append(m.db[i].OldNicknames, val)
+			}
+			if val, ok := m.updateQuery["fullName"]; ok {
+				m.db[i].FullName = val
+			}
+			if val, ok := m.updateQuery["oldNames"]; ok {
+				m.db[i].OldNames = append(m.db[i].OldNames, val)
+			}
+			return nil
+		}
+	}
+	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+}
+
+func (m *Memory) AddToUpdateQuery(t string, key string, value string) {
+	m.updateQuery[key] = value
+	m.queryStatus = true
+}
+func (m *Memory) ClearUpdateQuery() {
+	m.updateQuery = make(map[string]string)
+	m.queryStatus = false
 }
