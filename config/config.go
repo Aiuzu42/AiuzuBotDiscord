@@ -35,9 +35,11 @@ type DBConnection struct {
 }
 
 type ChannelsInfo struct {
-	F           string `json:"f"`
-	Ultimatum   string `json:"ultimatum"`
-	Sancionados string `json:"sancionados"`
+	F           string   `json:"f"`
+	Ultimatum   string   `json:"ultimatum"`
+	Sancionados string   `json:"sancionados"`
+	Suggestions []string `json:"suggestions"`
+	Reports     string   `json:"reports"`
 }
 
 type CustomSay struct {

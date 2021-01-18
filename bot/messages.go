@@ -7,6 +7,19 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+const (
+	AQUA        = 1752220
+	GREEN       = 3066993
+	BLUE        = 3447003
+	PURPLE      = 10181046
+	GOLD        = 15844367
+	ORANGE      = 15105570
+	RED         = 15158332
+	GREY        = 9807270
+	DARKER_GREY = 8359053
+	NAVY        = 3426654
+)
+
 func createMessageEmbedUserFull(user models.User) *discordgo.MessageEmbed {
 	me := discordgo.MessageEmbed{}
 	me.Title = "Información del usuario " + user.Name
@@ -190,5 +203,28 @@ func createMessageCommandHelp(command string, desc string, synt string) *discord
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Syntaxis:", Value: synt})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Notas:", Value: "Si algo esta entre {} significa que es obligatorio, si algo esta entre [] significa que es opcional."})
 	me.Fields = fields
+	return &me
+}
+
+func createMessageReport(reporterID string, reporterName string, reportedID string, reportedName string, reason string) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Reporte"
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Quien reporta:", Value: reporterID + "\n" + reporterName})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Reportado:", Value: reportedID + "\n" + reportedName})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Razón:", Value: reason})
+	me.Fields = fields
+	me.Color = RED
+	return &me
+}
+
+func createMessageReportBasic(reporterID string, reporterName string, reason string) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Reporte"
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Quien reporta:", Value: reporterID + "\n" + reporterName})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Que reporta:", Value: reason})
+	me.Fields = fields
+	me.Color = RED
 	return &me
 }

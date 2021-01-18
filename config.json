@@ -18,7 +18,9 @@
     "channels" : {
         "f" : "",
         "ultimatum" : "",
-        "sancionados" : ""
+        "sancionados" : "",
+        "suggestions" : [],
+        "reports" : ""
     },
     "roles" : {
         "ultimatum" : "",

@@ -12,7 +12,7 @@ import (
 
 const (
 	NO_AUTH        = "No tienes permiso de usar ese comando"
-	GENERIC_ERROR  = "Hubo un error al procesar el comando"
+	GENERIC_ERROR  = "Java lío :v tuve un error al intentar eso."
 	USER_NOT_FOUND = "No se encontro a ese usuario"
 )
 
@@ -21,13 +21,25 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
-	if m.GuildID != config.Config.Server {
-		gName, _ := s.Guild(m.GuildID)
-		log.Warn("[CommandsHandler]Returned because wrong server " + m.GuildID + " " + gName.Name)
+	if m.GuildID == "" {
+		handleDM(s, m)
 		return
 	}
-
+	if m.GuildID != config.Config.Server {
+		gData, _ := s.Guild(m.GuildID)
+		gName := ""
+		if gData != nil {
+			gName = gData.Name
+		}
+		log.Warn("[CommandsHandler]Returned because wrong server " + m.GuildID + " " + gName)
+		return
+	}
 	updateUserData(m)
+
+	if findIfExists(m.ChannelID, config.Config.Channels.Suggestions) {
+		convertToSuggestion(s, m)
+		return
+	}
 
 	if strings.HasPrefix(m.Content, prefix) == true {
 		r := []rune(m.Content)
@@ -501,7 +513,7 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 		level = 0
 	}
 	if st == "ayuda" {
-		response := "say"
+		response := "say\nreporte"
 		if level >= 1 {
 			response = response + "\ndetallesFull\ndetalles\ndetalleSanciones\nultimatum\nprimerAviso\nsancion\nsancionFuerte\nactualizar"
 		}
@@ -582,6 +594,9 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 		}
 		desc = "Se aplica una sancion fuerte, los detalles de esto dependen del caso especifico, AiuzuBot notifica de esto en el canal apropiado. Se registra la sanción."
 		synt = "ai!sancion {id} [razon]"
+	case "reporte":
+		desc = "Te permite reportar a algun usuario mediante su ID ai!reporte {userID} {razón} o reportar cualquier cosa que notes (fallos, situaciones, etc) ai!reporte {mensaje}"
+		synt = "ai!reporte {userID} {razón} ó ai!reporte {mensaje}"
 	case "actualizar":
 		if level < 1 {
 			permError = true
@@ -637,5 +652,16 @@ func actualizarCommand(s *discordgo.Session, m *discordgo.MessageCreate, st stri
 	_, err = s.ChannelMessageSend(m.ChannelID, success)
 	if err != nil {
 		log.Error("[actualizarCommand]Error sending success message: " + err.Error())
+	}
+}
+
+func convertToSuggestion(s *discordgo.Session, m *discordgo.MessageCreate) {
+	err := s.MessageReactionAdd(m.ChannelID, m.ID, "✅")
+	if err != nil {
+		log.Error("[convertToSuggestion]Error adding check mark: " + err.Error())
+	}
+	err = s.MessageReactionAdd(m.ChannelID, m.ID, "❌")
+	if err != nil {
+		log.Error("[convertToSuggestion]Error adding x: " + err.Error())
 	}
 }
