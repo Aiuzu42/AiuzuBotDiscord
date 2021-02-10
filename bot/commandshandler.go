@@ -1,11 +1,14 @@
 package bot
 
 import (
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"github.com/aiuzu42/AiuzuBotDiscord/database"
 	db "github.com/aiuzu42/AiuzuBotDiscord/database"
+	"github.com/aiuzu42/AiuzuBotDiscord/version"
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 )
@@ -14,6 +17,8 @@ const (
 	NO_AUTH        = "No tienes permiso de usar ese comando"
 	GENERIC_ERROR  = "Java lío :v tuve un error al intentar eso."
 	USER_NOT_FOUND = "No se encontro a ese usuario"
+
+	DISCORD_EPOCH = 1420070400000
 )
 
 // Commands handler job is to pasrse new messages to update the user data and execute bot commands if appropiate.
@@ -56,7 +61,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if !wasCustom {
 			switch args[0] {
 			case "reloadConfig":
-				reloadRolesCommand(s, m.ChannelID, m.Author.ID)
+				reloadRolesCommand(s, m)
 			case "say":
 				sayCommand(s, m.ChannelID, m.ChannelID, m.ID, st)
 			case "detallesFull":
@@ -77,10 +82,14 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				sancionFuerteCommand(s, m, st)
 			case "sancion":
 				sancionCommand(s, m, st)
-			case "ayuda":
+			case "ayuda", "help":
 				ayudaCommand(s, m, st)
 			case "actualizar":
 				actualizarCommand(s, m, st)
+			case "createdDate":
+				createdDateCommand(s, m, args)
+			case "version":
+				versionCommand(s, m, args)
 			default:
 				if IsMod(m.Member.Roles, m.Author.ID) {
 					sendErrorResponse(s, m.ChannelID, "El comando que intentas usar no existe.")
@@ -205,16 +214,20 @@ func sanctionsCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []s
 	}
 }
 
-func reloadRolesCommand(s *discordgo.Session, channelID string, id string) {
-	if !IsOwner(id) {
-		log.Warn("[reloadRolesCommand]User: " + id + " tried to use command reloadRolesCommand without permission.")
+func reloadRolesCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if !IsOwner(m.Author.ID) {
+		log.Warn("[reloadRolesCommand]User: " + m.Author.ID + " tried to use command reloadRolesCommand without permission.")
 		return
 	}
 	if err := config.ReloadConfig(); err != nil {
 		log.Error("[reloadRolesCommand]Error reloading config: " + err.Error())
-		s.ChannelMessageSend(channelID, "Hubo un error, no se pudo recargar la congfiguracion")
+		s.ChannelMessageSend(m.ChannelID, "Hubo un error, no se pudo recargar la congfiguracion")
 	}
 	LoadRoles()
+	err := s.MessageReactionAdd(m.ChannelID, m.ID, "✅")
+	if err != nil {
+		log.Error("[reloadRolesCommand]Error marking message: " + err.Error())
+	}
 }
 
 func sendErrorResponse(s *discordgo.Session, channelID string, msg string) {
@@ -512,10 +525,10 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 	} else {
 		level = 0
 	}
-	if st == "ayuda" {
+	if st == "ayuda" || st == "help" {
 		response := "say\nreporte"
 		if level >= 1 {
-			response = response + "\ndetallesFull\ndetalles\ndetalleSanciones\nultimatum\nprimerAviso\nsancion\nsancionFuerte\nactualizar"
+			response = response + "\ndetallesFull\ndetalles\ndetalleSanciones\nultimatum\nprimerAviso\nsancion\nsancionFuerte\nactualizar\ncreatedDate\nversion"
 		}
 		if level >= 3 {
 			response = response + "\nsyncTodos\nsetStatus\nreloadConfig"
@@ -606,6 +619,18 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 	case "ayuda":
 		desc = "El comando de ayuda te explica como usar los comandos de AiuzuBot y que hace cada uno."
 		synt = "ai!ayuda [comando]"
+	case "createdDate":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Te dice la fecha de creacion de la cuenta asociada con ese ID en formato dd-MM-yyyy mm:HH"
+		synt = "ai!createdDate {userID}"
+	case "version":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Te dice el numero de version de Aiuzu Bot"
+		synt = "ai!version"
 	default:
 		permError = true
 	}
@@ -663,5 +688,45 @@ func convertToSuggestion(s *discordgo.Session, m *discordgo.MessageCreate) {
 	err = s.MessageReactionAdd(m.ChannelID, m.ID, "❌")
 	if err != nil {
 		log.Error("[convertToSuggestion]Error adding x: " + err.Error())
+	}
+}
+
+func createdDateCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[createdDateCommand]User: " + m.Author.ID + " tried to use command createdDate without permission.")
+		sendErrorResponse(s, m.ChannelID, NO_AUTH)
+		return
+	}
+	if len(args) != 2 {
+		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!createdDate {userID}")
+		return
+	}
+	idInt, err := strconv.ParseInt(args[1], 10, 64)
+	if err != nil {
+		sendErrorResponse(s, m.ChannelID, "El ID ["+args[1]+"] no es valido.")
+		return
+	}
+	idInt = ((idInt >> 22) + DISCORD_EPOCH) / 1000
+	createdTime := time.Unix(idInt, 0)
+	createdDate := createdTime.Format("02-01-2006 15:04")
+	_, err = s.ChannelMessageSend(m.ChannelID, "La cuenta se creo en: "+createdDate)
+	if err != nil {
+		log.Error("[createdDateCommand]Error sending success message: " + err.Error())
+	}
+}
+
+func versionCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[versionCommand]User: " + m.Author.ID + " tried to use command version without permission.")
+		sendErrorResponse(s, m.ChannelID, NO_AUTH)
+		return
+	}
+	if len(args) > 1 {
+		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!version")
+		return
+	}
+	_, err := s.ChannelMessageSend(m.ChannelID, "Aiuzu Bot version: "+version.Version)
+	if err != nil {
+		log.Error("[versionCommand]Error sending success message: " + err.Error())
 	}
 }

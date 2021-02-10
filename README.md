@@ -25,8 +25,11 @@ ultimatum {userID} [razon]: Se pasa al usuario con ese ID a ultimatum, se actual
 primerAviso {userID} [razon]: Si tiene derecho a primer aviso se aplica y notifica, si no lo tiene se notifica
 sancion {id} [razon]: Se aplica una sancion fuerte y se pasa a ultimatum, AiuzuBot notifica de esto en el canal apropiado. Se registra la sanción.
 sancionFuerte {id} [razon]: 
+version: Te dice el numero de version de Aiuzu Bot
+createdDate {id}: Te dice la fecha de creacion de la cuenta asociada con ese ID en formato dd-MM-yyyy mm:HH
 Comandos Say personalizados, se configuran en config.json
 
 Todos:
 say {msg}: El bot dice lo que el comando le indique y borra el mensaje original
 ayuda [comando]: El comando de ayuda te explica como usar los comandos de AiuzuBot y que hace cada uno.
+help [comand]: Alias de ayuda
