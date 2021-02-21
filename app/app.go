@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,11 +14,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	AppSession App
+)
+
 // StartApp Initialize the bot.
 // It load roles from config, start discordgo session, selects repository type, adds handlers, prints bot version and handles stop condition.
 func StartApp() {
+	AppSession = App{}
+	var err error
 	bot.LoadRoles()
-	b, err := discordgo.New("Bot " + config.Config.Token)
+	AppSession.b, err = discordgo.New("Bot " + config.Config.Token)
 	if err != nil {
 		log.Fatal("[StartApp]Error starting up discordgo: " + err.Error())
 	}
@@ -25,19 +32,31 @@ func StartApp() {
 	if err != nil {
 		log.Fatal("[StartApp]Error selecting repository: " + err.Error())
 	}
-	b.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
-	b.AddHandler(bot.CommandsHandler)
-	b.AddHandler(bot.NewMemberHandler)
-	b.AddHandler(bot.MemberLeaveHandler)
-	b.AddHandler(bot.MemberUpdateHandler)
-	err = b.Open()
+	AppSession.b.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
+	AppSession.b.AddHandler(bot.CommandsHandler)
+	AppSession.b.AddHandler(bot.NewMemberHandler)
+	AppSession.b.AddHandler(bot.MemberLeaveHandler)
+	AppSession.b.AddHandler(bot.MemberUpdateHandler)
+	err = AppSession.b.Open()
 	if err != nil {
 		log.Fatal("[StartApp]Error opening Discord websocket connection: " + err.Error())
 	}
+	http.HandleFunc("/", indexController)
+	http.HandleFunc("/msg", msgController)
+	http.HandleFunc("/edit", editController)
+	http.HandleFunc("/editmsg", editMsgController)
+	http.HandleFunc("/msgembed", msgEmbedController)
+	http.HandleFunc("/editmsgembed", editMsgEmbedController)
+	go func() {
+		err := http.ListenAndServe(":9090", nil)
+		if err != nil {
+			log.Fatal("[StartApp]Error initiating web server: " + err.Error())
+		}
+	}()
 	fmt.Println("AiuzuBot Discord is now running. Version: " + version.Version)
 	log.Info("AiuzuBot Discord is now running. Version: " + version.Version)
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-	b.Close()
+	AppSession.b.Close()
 }
