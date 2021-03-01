@@ -248,7 +248,7 @@ func setStatus(s *discordgo.Session, m *discordgo.MessageCreate, r []rune) {
 		log.Error("[setStatus]Unable to delete message: " + err.Error())
 	}
 	msg := string(r[pLen+10:])
-	err = s.UpdateStatus(0, msg)
+	err = s.UpdateGameStatus(0, msg)
 	if err != nil {
 		log.Error("[setStatus]Unable to update status: " + err.Error())
 	}

@@ -32,7 +32,6 @@ func StartApp() {
 	if err != nil {
 		log.Fatal("[StartApp]Error selecting repository: " + err.Error())
 	}
-	AppSession.b.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 	AppSession.b.AddHandler(bot.CommandsHandler)
 	AppSession.b.AddHandler(bot.NewMemberHandler)
 	AppSession.b.AddHandler(bot.MemberLeaveHandler)
