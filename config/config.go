@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/aiuzu42/AiuzuBotDiscord/youtube"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,6 +21,7 @@ type configuration struct {
 	Channels   ChannelsInfo `json:"channels"`
 	Roles      RolesInfo    `json:"roles"`
 	CustomSays []CustomSay  `json:"customSays"`
+	Youtube    YoutubeData  `json:"youtube"`
 }
 
 // DBConnections contains all the needed information to connect to a database.
@@ -56,6 +58,11 @@ type RolesInfo struct {
 	Silenced  string `json:"silenced"`
 }
 
+type YoutubeData struct {
+	Url     string `json:"url"`
+	BotName string `json:"botName"`
+}
+
 const (
 	filePath = "config.json"
 )
@@ -77,6 +84,7 @@ func InitConfig() error {
 	default:
 		log.SetLevel(log.InfoLevel)
 	}
+	setAppVariables()
 	Loc = time.FixedZone("UTC-6", -6*60*60)
 	return nil
 }
@@ -89,6 +97,7 @@ func ReloadConfig() error {
 		return err
 	}
 	Config = localConfig
+	setAppVariables()
 	return nil
 }
 
@@ -104,4 +113,8 @@ func loadConfig() (configuration, error) {
 		return configuration{}, errors.New("Error parsing configuration file [" + err.Error() + "]")
 	}
 	return localConfig, nil
+}
+
+func setAppVariables() {
+	youtube.ApiUrl = Config.Youtube.Url
 }

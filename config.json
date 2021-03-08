@@ -33,5 +33,9 @@
     "customSays" : [{
         "commandName" : "",
         "channel" : ""
-    }]
+    }],
+    "youtube" : {
+        "url" : "",
+        "botName" : ""
+    }
 }

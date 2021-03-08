@@ -9,6 +9,7 @@ import (
 	"github.com/aiuzu42/AiuzuBotDiscord/database"
 	db "github.com/aiuzu42/AiuzuBotDiscord/database"
 	"github.com/aiuzu42/AiuzuBotDiscord/version"
+	"github.com/aiuzu42/AiuzuBotDiscord/youtube"
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 )
@@ -19,6 +20,9 @@ const (
 	USER_NOT_FOUND = "No se encontro a ese usuario"
 
 	DISCORD_EPOCH = 1420070400000
+
+	START_YT_BOT = "Se esta intentando iniciar el bot de Youtube, favor de esperar..."
+	STOP_YT_BOT  = "Se esta intentando detener el bot de Youtube, favor de esperar..."
 )
 
 // Commands handler job is to pasrse new messages to update the user data and execute bot commands if appropiate.
@@ -90,6 +94,10 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				createdDateCommand(s, m, args)
 			case "version":
 				versionCommand(s, m, args)
+			case "startYt":
+				go startYtCommand(s, m, args)
+			case "stopYt":
+				go stopYtCommand(s, m)
 			default:
 				if IsMod(m.Member.Roles, m.Author.ID) {
 					sendErrorResponse(s, m.ChannelID, "El comando que intentas usar no existe.")
@@ -530,6 +538,9 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 		if level >= 1 {
 			response = response + "\ndetallesFull\ndetalles\ndetalleSanciones\nultimatum\nprimerAviso\nsancion\nsancionFuerte\nactualizar\ncreatedDate\nversion"
 		}
+		if level >= 2 {
+			response = response + "\nstartYt\nstopYt"
+		}
 		if level >= 3 {
 			response = response + "\nsyncTodos\nsetStatus\nreloadConfig"
 		}
@@ -631,6 +642,18 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 		}
 		desc = "Te dice el numero de version de Aiuzu Bot"
 		synt = "ai!version"
+	case "stopYt":
+		if level < 2 {
+			permError = true
+		}
+		desc = "Detiene el AiuzuBot de Youtube del canal que este en las configuraciones"
+		synt = "ai!stopYt"
+	case "startYt":
+		if level < 2 {
+			permError = true
+		}
+		desc = "Inicia el AiuzuBot de Youtube del canal que este en las configuraciones"
+		synt = "ai!startYt"
 	default:
 		permError = true
 	}
@@ -728,5 +751,55 @@ func versionCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []str
 	_, err := s.ChannelMessageSend(m.ChannelID, "Aiuzu Bot version: "+version.Version)
 	if err != nil {
 		log.Error("[versionCommand]Error sending success message: " + err.Error())
+	}
+}
+
+func startYtCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	if !IsAdmin(m.Member.Roles, m.Author.ID) {
+		log.Warn("[startYtCommand]User: " + m.Author.ID + " tried to use command startYt without permission.")
+		sendErrorResponse(s, m.ChannelID, NO_AUTH)
+		return
+	}
+	liveId := ""
+	if len(args) > 1 {
+		liveId = args[1]
+	}
+	nm, err := s.ChannelMessageSend(m.ChannelID, START_YT_BOT)
+	if err != nil {
+		log.Error("[startYtCommand]Error sending wait message: " + err.Error())
+		return
+	}
+	var result string
+	if err := youtube.StartBot(config.Config.Youtube.BotName, liveId); err == nil {
+		result = " se inicio con exito el bot! ✅"
+	} else {
+		result = " no se pudo iniciar el bot! ❌"
+	}
+	_, err = s.ChannelMessageEdit(nm.ChannelID, nm.ID, START_YT_BOT+result)
+	if err != nil {
+		log.Error("[startYtCommand]Error sending result message: " + err.Error())
+	}
+}
+
+func stopYtCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if !IsAdmin(m.Member.Roles, m.Author.ID) {
+		log.Warn("[stopYtCommand]User: " + m.Author.ID + " tried to use command stopYt without permission.")
+		sendErrorResponse(s, m.ChannelID, NO_AUTH)
+		return
+	}
+	nm, err := s.ChannelMessageSend(m.ChannelID, STOP_YT_BOT)
+	if err != nil {
+		log.Error("[stopYtCommand]Error sending wait message: " + err.Error())
+		return
+	}
+	var result string
+	if err := youtube.StopBot(config.Config.Youtube.BotName); err == nil {
+		result = " se detuvo con exito el bot! ✅"
+	} else {
+		result = " no se pudo detener el bot! ❌"
+	}
+	_, err = s.ChannelMessageEdit(nm.ChannelID, nm.ID, STOP_YT_BOT+result)
+	if err != nil {
+		log.Error("[stopYtCommand]Error sending result message: " + err.Error())
 	}
 }

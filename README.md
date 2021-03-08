@@ -15,6 +15,8 @@ setStatus {status}: Actualiza el estatus del bot y borra el mensaje original
 syncTodos: Revisa todos los usuarios del servidor y agrega a base de datos a los que no esten registrados, operacion pesada
 
 Admin:
+startYt [liveId]: Starts the youtube bot for the configured channel
+stopYt: Stops the youtube bot for the configured channel 
 
 Mod:
 detallesFull {nombre o id}: Muestra todos los detalles del usuario, excepto el desglose de las sanciones
