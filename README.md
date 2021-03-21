@@ -11,12 +11,14 @@ Commands by level:
 
 Owner:
 reloadConfig: carga modificaciones realizadas al archivo de configuracion
-setStatus {status}: Actualiza el estatus del bot y borra el mensaje original
 syncTodos: Revisa todos los usuarios del servidor y agrega a base de datos a los que no esten registrados, operacion pesada
 
 Admin:
 startYt [liveId]: Starts the youtube bot for the configured channel
-stopYt: Stops the youtube bot for the configured channel 
+stopYt: Stops the youtube bot for the configured channel
+setStatus {status}: Actualiza el estatus de "Jugando a" del bot y borra el mensaje original
+setListenStatus {status}: Actualiza el estatus de "Escuchando a" del bot y borra el mensaje original
+setStreamStatus {url} {status}: Actualiza el estatus de "Streaming" del bot y borra el mensaje original 
 
 Mod:
 detallesFull {nombre o id}: Muestra todos los detalles del usuario, excepto el desglose de las sanciones

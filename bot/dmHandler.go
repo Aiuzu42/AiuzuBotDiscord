@@ -25,7 +25,7 @@ func handleDM(s *discordgo.Session, m *discordgo.MessageCreate) {
 func dmReportCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 	arg, reason := argumentsHandler(st)
 	if arg == "" && reason == "" {
-		sendErrorResponse(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!reporte {mensaje} ó ai!reporte {userID} {razon}")
+		sendMessage(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!reporte {mensaje} ó ai!reporte {userID} {razon}", "[dmReportCommand][0]")
 		return
 	}
 	userData, dbErr := repo.GetUser(arg, "")
