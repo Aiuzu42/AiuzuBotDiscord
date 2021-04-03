@@ -110,3 +110,37 @@ $RECYCLE.BIN/
 update.bat
 
 # End of https://www.toptal.com/developers/gitignore/api/go,visualstudiocode,windows,linux,macos
+
+### Intellij ###
+
+# CMake
+cmake-build-*/
+
+# File-based project format
+*.iws
+
+# IntelliJ
+out/
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+.idea/
+
+# Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-249601023
+
+*.iml
+modules.xml
+.idea/misc.xml
+*.ipr
+
+# End of https://www.toptal.com/developers/gitignore/api/intellij+all
