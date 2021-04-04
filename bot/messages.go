@@ -221,7 +221,7 @@ func createMessageEmbedFirstStrike(id string, reason string, firstStrikeMsg stri
 	me := discordgo.MessageEmbed{}
 	me.Title = "Primer y único aviso"
 	fields := []*discordgo.MessageEmbedField{}
-	fields = append(fields, &discordgo.MessageEmbedField{Name: "Sancionado:", Value: "<@" + id + ">"})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Usuario:", Value: "<@" + id + ">"})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Razón:", Value: reason})
 	me.Fields = fields
 	me.Description = firstStrikeMsg
