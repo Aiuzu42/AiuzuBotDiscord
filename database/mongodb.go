@@ -19,6 +19,10 @@ type MongoDB struct {
 	queryStatus bool
 }
 
+type xpReturned struct {
+	vxp int `bson:"vxp"`
+}
+
 // InitDB start the mongoDB connection initializing the client and collection pointers.
 func (m *MongoDB) InitDB(c config.DBConnection) *dBError {
 	var err error
@@ -77,10 +81,12 @@ func (m *MongoDB) AddUser(user models.User) *dBError {
 	return nil
 }
 
-// IncreaseMessageCount searches for the document with the provided userID.
+// UpdateUserMessageData searches for the document with the provided userID.
 // If found, it increases its server.messageCount value and updates server.lastMessage.
+// Also increases the amount of vxp the user has by the amount defined in vxp parameter
+// Returns the amount of xp after the update operation was made
 // If the user is not found an error is returned.
-func (m *MongoDB) IncreaseMessageCount(userID string) *dBError {
+func (m *MongoDB) UpdateUserMessageData(userID string, vxp int) (int, *dBError) {
 	query := bson.M{
 		"userID": userID,
 	}
@@ -96,15 +102,31 @@ func (m *MongoDB) IncreaseMessageCount(userID string) *dBError {
 				{Key: "server.lastMessage", Value: lastMessage},
 			},
 		},
+		{
+			Key: "$inc", Value: bson.D{
+				{Key: "vxp", Value: vxp},
+			},
+		},
 	}
-	ur, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	after := options.After
+	opts := options.FindOneAndUpdateOptions{
+		ReturnDocument: &after,
+		Projection: bson.M{
+			"vxp": 1,
+		},
+	}
+	sr := m.collection.FindOneAndUpdate(context.TODO(), query, updateQuery, &opts)
+	if sr.Err() != nil && sr.Err() == mongo.ErrNoDocuments {
+		return 0, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	} else if sr.Err() != nil {
+		return 0, &dBError{Code: DatabaseErrorCode, Message: sr.Err().Error()}
+	}
+	var xp xpReturned
+	err := sr.Decode(&xp)
 	if err != nil {
-		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+		return 0, &dBError{Code: DecodingErrorCode, Message: err.Error()}
 	}
-	if ur.MatchedCount == 0 {
-		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
-	}
-	return nil
+	return xp.vxp, nil
 }
 
 // AddJoinDate looks for the document with the userID provided.

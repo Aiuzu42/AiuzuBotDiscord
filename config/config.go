@@ -22,6 +22,7 @@ type configuration struct {
 	Roles      RolesInfo    `json:"roles"`
 	CustomSays []CustomSay  `json:"customSays"`
 	Youtube    YoutubeData  `json:"youtube"`
+	Vxp        VxpData      `json:"vxp"`
 }
 
 // DBConnections contains all the needed information to connect to a database.
@@ -61,6 +62,22 @@ type RolesInfo struct {
 type YoutubeData struct {
 	Url     string `json:"url"`
 	BotName string `json:"botName"`
+}
+
+type VxpData struct {
+	Multipliers []Multiplier `json:"multipliers"`
+	LevelUps    []LevelUp    `json:"levelUps"`
+}
+
+type Multiplier struct {
+	Roles []string `json:"roles"`
+	Mult  int      `json:"mult"`
+}
+
+type LevelUp struct {
+	Milestone int      `json:"milestone"`
+	Adds      []string `json:"adds"`
+	Removes   []string `json:"removes"`
 }
 
 const (

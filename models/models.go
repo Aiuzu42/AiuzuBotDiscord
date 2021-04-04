@@ -17,6 +17,7 @@ type User struct {
 	OldNicknames []string      `bson:"oldNicknames,omitempty"`
 	Sanctions    Sanction      `bson:"sanctions"`
 	Server       ServerDetails `bson:"server"`
+	Vpx          int           `bson:"vxp"`
 }
 
 type Sanction struct {

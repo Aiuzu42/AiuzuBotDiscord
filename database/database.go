@@ -29,7 +29,7 @@ type Databse interface {
 	InitDB(c config.DBConnection) *dBError
 	GetUser(userID string, username string) (models.User, *dBError)
 	AddUser(user models.User) *dBError
-	IncreaseMessageCount(userID string) *dBError
+	UpdateUserMessageData(userID string, vxp int) (int, *dBError)
 	AddJoinDate(userID string, date time.Time) (bool, *dBError)
 	AddLeaveDate(userID string, date time.Time) (bool, *dBError)
 	SetUltimatum(userID string) *dBError

@@ -36,14 +36,15 @@ func (m *Memory) AddUser(user models.User) *dBError {
 	return nil
 }
 
-func (m *Memory) IncreaseMessageCount(userID string) *dBError {
+func (m *Memory) UpdateUserMessageData(userID string, vxp int) (int, *dBError) {
 	for i := range m.db {
 		if userID == m.db[i].UserID {
 			m.db[i].Server.MessageCount = m.db[i].Server.MessageCount + 1
-			return nil
+			m.db[i].Vpx = m.db[i].Vpx + vxp
+			return m.db[i].Vpx, nil
 		}
 	}
-	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	return 0, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
 
 func (m *Memory) AddJoinDate(userID string, date time.Time) (bool, *dBError) {

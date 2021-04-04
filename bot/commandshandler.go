@@ -43,7 +43,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		log.Warn("[CommandsHandler]Returned because wrong server " + m.GuildID + " " + gName)
 		return
 	}
-	updateUserData(m)
+	updateUserData(s, m)
 
 	if findIfExists(m.ChannelID, config.Config.Channels.Suggestions) {
 		convertToSuggestion(s, m)
@@ -133,12 +133,12 @@ func customSayCommand(s *discordgo.Session, m *discordgo.MessageCreate, tarCh st
 	sayCommand(s, m.ChannelID, tarCh, m.ID, st)
 }
 
-func updateUserData(m *discordgo.MessageCreate) {
+func updateUserData(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author == nil {
 		log.Error("[updateUserData]Message with nil author")
 		return
 	}
-	dbErr := repo.IncreaseMessageCount(m.Author.ID)
+	xp, dbErr := repo.UpdateUserMessageData(m.Author.ID, 1)
 	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		user, errM := userAndMemberToLocalUser(m.Author, m.Member)
 		if errM != nil {
@@ -151,6 +151,22 @@ func updateUserData(m *discordgo.MessageCreate) {
 		}
 	} else if dbErr != nil {
 		log.Error("[updateUserData]Error trying to increase message count: " + dbErr.Message)
+	} else {
+		go handleLevelUp(xp, s, m)
+	}
+}
+
+func handleLevelUp(cxp int, s *discordgo.Session, m *discordgo.MessageCreate) {
+	lm := 0
+	j := -1
+	for i, lu := range config.Config.Vxp.LevelUps {
+		if lu.Milestone > lm && cxp > lu.Milestone {
+			lm = lu.Milestone
+			j = i
+		}
+	}
+	if j > -1 {
+
 	}
 }
 
