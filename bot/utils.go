@@ -7,6 +7,10 @@ import (
 	"github.com/aiuzu42/AiuzuBotDiscord/database"
 )
 
+const (
+	YELLOW = 16766208
+)
+
 func updateUserNames(id string, n string, un string, d string) (bool, error) {
 	updated := false
 	u, dbErr := repo.GetUser(id, "")

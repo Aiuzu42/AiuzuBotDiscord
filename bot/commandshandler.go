@@ -555,8 +555,8 @@ func primerAvisoCommand(s *discordgo.Session, m *discordgo.MessageCreate, st str
 		return
 	}
 	arg, reason := argumentsHandler(st)
-	if arg == "" && reason == "" {
-		sendMessage(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!primerAviso {userID} [razon]", "[primerAvisoCommand][1]")
+	if arg == "" || reason == "" {
+		sendMessage(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!primerAviso {userID} {razon}", "[primerAvisoCommand][1]")
 		return
 	}
 	dbErr := repo.SetPrimerAviso(arg)
@@ -573,7 +573,7 @@ func primerAvisoCommand(s *discordgo.Session, m *discordgo.MessageCreate, st str
 		}
 		return
 	}
-	_, err := s.ChannelMessageSend(m.ChannelID, "Se le aplico correctamente primer aviso a <@"+arg+">")
+	_, err := s.ChannelMessageSendEmbed(config.Config.Channels.Primer, createMessageEmbedFirstStrike(arg, reason, config.Config.Messages.Primer, YELLOW))
 	if err != nil {
 		log.Error("[primerAvisoCommand]Error sending success message: " + err.Error())
 	}
@@ -674,7 +674,7 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 			permError = true
 		}
 		desc = "Si tiene derecho a primer aviso se aplica y notifica, si no lo tiene se notifica que se debe sancionar"
-		synt = "ai!primerAviso {userID} [razon]"
+		synt = "ai!primerAviso {userID} {razon}"
 	case "sancionFuerte":
 		if level < 1 {
 			permError = true

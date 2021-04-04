@@ -20,7 +20,8 @@
         "ultimatum" : "",
         "sancionados" : "",
         "suggestions" : [],
-        "reports" : ""
+        "reports" : "",
+        "primerAviso" : ""
     },
     "roles" : {
         "ultimatum" : "",
@@ -37,5 +38,8 @@
     "youtube" : {
         "url" : "",
         "botName" : ""
+    },
+    "messages" : {
+        "primerAviso" : ""
     }
 }

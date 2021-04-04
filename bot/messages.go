@@ -160,18 +160,6 @@ func createMessageEmbedSancionFuerte(id string, fullName string, reason string, 
 	return &me
 }
 
-func createMessageEmbedPrimerAviso(id string, fullName string, reason string) *discordgo.MessageEmbed {
-	me := discordgo.MessageEmbed{}
-	me.Title = "Primer aviso aplicado"
-	fields := []*discordgo.MessageEmbedField{}
-	fields = append(fields, &discordgo.MessageEmbedField{Name: "Sancionado:", Value: fullName})
-	fields = append(fields, &discordgo.MessageEmbedField{Name: "ID:", Value: id})
-	fields = append(fields, &discordgo.MessageEmbedField{Name: "Razón", Value: reason})
-	fields = append(fields, &discordgo.MessageEmbedField{Name: "Acción", Value: "Se aplico primer aviso"})
-	me.Fields = fields
-	return &me
-}
-
 func createMessageEmbedSancion(id string, fullName string, reason string, n int, action string) *discordgo.MessageEmbed {
 	me := discordgo.MessageEmbed{}
 	me.Title = "Sancion normal aplicada"
@@ -226,5 +214,17 @@ func createMessageReportBasic(reporterID string, reporterName string, reason str
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Que reporta:", Value: reason})
 	me.Fields = fields
 	me.Color = RED
+	return &me
+}
+
+func createMessageEmbedFirstStrike(id string, reason string, firstStrikeMsg string, color int) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Primer y único aviso"
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Sancionado:", Value: "<@" + id + ">"})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Razón:", Value: reason})
+	me.Fields = fields
+	me.Description = firstStrikeMsg
+	me.Color = color
 	return &me
 }

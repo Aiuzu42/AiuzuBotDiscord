@@ -22,6 +22,7 @@ type configuration struct {
 	Roles      RolesInfo    `json:"roles"`
 	CustomSays []CustomSay  `json:"customSays"`
 	Youtube    YoutubeData  `json:"youtube"`
+	Messages   BotMessages  `json:"messages"`
 }
 
 // DBConnections contains all the needed information to connect to a database.
@@ -42,6 +43,7 @@ type ChannelsInfo struct {
 	Sancionados string   `json:"sancionados"`
 	Suggestions []string `json:"suggestions"`
 	Reports     string   `json:"reports"`
+	Primer      string   `json:"primerAviso"`
 }
 
 type CustomSay struct {
@@ -61,6 +63,10 @@ type RolesInfo struct {
 type YoutubeData struct {
 	Url     string `json:"url"`
 	BotName string `json:"botName"`
+}
+
+type BotMessages struct {
+	Primer string `json:"primerAviso"`
 }
 
 const (
