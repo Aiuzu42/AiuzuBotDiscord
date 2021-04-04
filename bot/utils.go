@@ -8,7 +8,10 @@ import (
 )
 
 const (
-	YELLOW = 16766208
+	YELLOW     = 16766208
+	LIGHT_BLUE = 6410746
+
+	DISCORD_EPOCH = 1420070400000
 )
 
 func updateUserNames(id string, n string, un string, d string) (bool, error) {

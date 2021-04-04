@@ -44,6 +44,7 @@ type ChannelsInfo struct {
 	Suggestions []string `json:"suggestions"`
 	Reports     string   `json:"reports"`
 	Primer      string   `json:"primerAviso"`
+	BotDM       string   `json:"botDM"`
 }
 
 type CustomSay struct {

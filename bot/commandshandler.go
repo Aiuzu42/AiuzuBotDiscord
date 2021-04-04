@@ -18,11 +18,8 @@ const (
 	NO_AUTH        = "No tienes permiso de usar ese comando"
 	GENERIC_ERROR  = "Java lío :v tuve un error al intentar eso."
 	USER_NOT_FOUND = "No se encontro a ese usuario"
-
-	DISCORD_EPOCH = 1420070400000
-
-	START_YT_BOT = "Se esta intentando iniciar el bot de Youtube, favor de esperar..."
-	STOP_YT_BOT  = "Se esta intentando detener el bot de Youtube, favor de esperar..."
+	START_YT_BOT   = "Se esta intentando iniciar el bot de Youtube, favor de esperar..."
+	STOP_YT_BOT    = "Se esta intentando detener el bot de Youtube, favor de esperar..."
 )
 
 // Commands handler job is to pasrse new messages to update the user data and execute bot commands if appropiate.
@@ -102,6 +99,8 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				go startYtCommand(s, m, args)
 			case "stopYt":
 				go stopYtCommand(s, m)
+			case "dm", "md":
+				dmCommand(s, m, st)
 			default:
 				if IsMod(m.Member.Roles, m.Author.ID) {
 					sendMessage(s, m.ChannelID, "El comando que intentas usar no existe.", "[CommandsHandler][0]")
@@ -593,7 +592,7 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 	if st == "ayuda" || st == "help" {
 		response := "say\nreporte"
 		if level >= 1 {
-			response = response + "\ndetallesFull\ndetalles\ndetalleSanciones\nultimatum\nprimerAviso\nsancion\nsancionFuerte\nactualizar\ncreatedDate\nversion"
+			response = response + "\ndetallesFull\ndetalles\ndetalleSanciones\nultimatum\nprimerAviso\nsancion\nsancionFuerte\nactualizar\ncreatedDate\nversion\nmd\ndm"
 		}
 		if level >= 2 {
 			response = response + "\nstartYt\nstopYt\nsetStatus\nsetListenStatus\nsetStreamStatus"
@@ -696,7 +695,7 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 		}
 		desc = "Actualiza el nombre y el apodo del usuario en caso de que se encuentre desactualizado."
 		synt = "ai!actualizar {id}"
-	case "ayuda":
+	case "ayuda", "help":
 		desc = "El comando de ayuda te explica como usar los comandos de AiuzuBot y que hace cada uno."
 		synt = "ai!ayuda [comando]"
 	case "createdDate":
@@ -723,6 +722,12 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 		}
 		desc = "Inicia el AiuzuBot de Youtube del canal que este en las configuraciones"
 		synt = "ai!startYt"
+	case "dm", "md":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Manda un MD al usuario del ID indicado"
+		synt = "ai!dm {id} {msg} ó ai!md {id} {msg}"
 	default:
 		permError = true
 	}
@@ -870,5 +875,28 @@ func stopYtCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 	_, err = s.ChannelMessageEdit(nm.ChannelID, nm.ID, STOP_YT_BOT+result)
 	if err != nil {
 		log.Error("[stopYtCommand]Error sending result message: " + err.Error())
+	}
+}
+
+func dmCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[dmCommand]User: " + m.Author.ID + " tried to use command dmCommand without permission.")
+		return
+	}
+	arg, msg := argumentsHandler(st)
+	if arg == "" || msg == "" {
+		sendMessage(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!md {id} {msg}", "[dmCommand][1]")
+		return
+	}
+	dmc, err := s.UserChannelCreate(arg)
+	if err != nil {
+		log.Error("[dmCommand]Error creating DM channel: " + err.Error())
+		sendMessage(s, m.ChannelID, GENERIC_ERROR, "[sendMDCommand][2]")
+		return
+	}
+	_, err = s.ChannelMessageSend(dmc.ID, msg)
+	if err != nil {
+		log.Error("[dmCommand]Error sending DM: " + err.Error())
+		sendMessage(s, m.ChannelID, GENERIC_ERROR, "[sendMDCommand][3]")
 	}
 }

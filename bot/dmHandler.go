@@ -10,7 +10,13 @@ import (
 )
 
 func handleDM(s *discordgo.Session, m *discordgo.MessageCreate) {
-	log.Info("DM from: " + m.Author.ID + ": " + m.Content)
+	log.Info("[handleDM]DM from: " + m.Author.ID + ": " + m.Content)
+	if config.Config.Channels.BotDM != "" {
+		_, err := s.ChannelMessageSendEmbed(config.Config.Channels.BotDM, createMessageEmbedDMLog(m.Author.ID, m.Content))
+		if err != nil {
+			log.Info("[handleDM]Unable to log DM to channel: " + config.Config.Channels.BotDM)
+		}
+	}
 	if strings.HasPrefix(m.Content, prefix) == true {
 		r := []rune(m.Content)
 		st := string(r[pLen:])

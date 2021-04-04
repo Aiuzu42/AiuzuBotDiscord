@@ -21,7 +21,8 @@
         "sancionados" : "",
         "suggestions" : [],
         "reports" : "",
-        "primerAviso" : ""
+        "primerAviso" : "",
+        "botDM" : ""
     },
     "roles" : {
         "ultimatum" : "",

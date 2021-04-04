@@ -228,3 +228,14 @@ func createMessageEmbedFirstStrike(id string, reason string, firstStrikeMsg stri
 	me.Color = color
 	return &me
 }
+
+func createMessageEmbedDMLog(user string, msg string) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Aiuzu Bot DM"
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Usuario:", Value: "<@" + user + ">"})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "Msg:", Value: msg})
+	me.Fields = fields
+	me.Color = LIGHT_BLUE
+	return &me
+}
