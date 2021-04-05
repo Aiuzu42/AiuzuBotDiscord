@@ -572,7 +572,7 @@ func primerAvisoCommand(s *discordgo.Session, m *discordgo.MessageCreate, st str
 		}
 		return
 	}
-	_, err := s.ChannelMessageSendEmbed(config.Config.Channels.Primer, createMessageEmbedFirstStrike(arg, reason, config.Config.Messages.Primer, YELLOW))
+	_, err := s.ChannelMessageSendComplex(config.Config.Channels.Primer, createMessageComplexFirstStrike(arg, reason, config.Config.Messages.Primer, YELLOW))
 	if err != nil {
 		log.Error("[primerAvisoCommand]Error sending success message: " + err.Error())
 	}

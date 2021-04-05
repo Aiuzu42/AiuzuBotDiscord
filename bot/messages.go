@@ -229,6 +229,13 @@ func createMessageEmbedFirstStrike(id string, reason string, firstStrikeMsg stri
 	return &me
 }
 
+func createMessageComplexFirstStrike(id string, reason string, firstStrikeMsg string, color int) *discordgo.MessageSend {
+	me := discordgo.MessageSend{}
+	me.Embed = createMessageEmbedFirstStrike(id, reason, firstStrikeMsg, color)
+	me.Content = "<@" + id + ">"
+	return &me
+}
+
 func createMessageEmbedDMLog(user string, msg string) *discordgo.MessageEmbed {
 	me := discordgo.MessageEmbed{}
 	me.Title = "Aiuzu Bot DM"
