@@ -45,6 +45,7 @@ type ChannelsInfo struct {
 	Reports     string   `json:"reports"`
 	Primer      string   `json:"primerAviso"`
 	BotDM       string   `json:"botDM"`
+	Youtube     string   `json:"youtube"`
 }
 
 type CustomSay struct {
@@ -62,8 +63,12 @@ type RolesInfo struct {
 }
 
 type YoutubeData struct {
-	Url     string `json:"url"`
-	BotName string `json:"botName"`
+	Url         string `json:"url"`
+	BotName     string `json:"botName"`
+	SendMessage bool   `json:"sendMessage"`
+	SetStatus   bool   `json:"setStatus"`
+	Message     string `json:"message"`
+	StatusMsg   string `json:"statusMsg"`
 }
 
 type BotMessages struct {

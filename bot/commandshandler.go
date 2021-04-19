@@ -20,6 +20,11 @@ const (
 	USER_NOT_FOUND = "No se encontro a ese usuario"
 	START_YT_BOT   = "Se esta intentando iniciar el bot de Youtube, favor de esperar..."
 	STOP_YT_BOT    = "Se esta intentando detener el bot de Youtube, favor de esperar..."
+	FULL_YT_URL    = "https://www.youtube.com/watch?v="
+)
+
+var (
+	youtube_started = false
 )
 
 // Commands handler job is to pasrse new messages to update the user data and execute bot commands if appropiate.
@@ -837,6 +842,22 @@ func startYtCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []str
 	liveId := ""
 	if len(args) > 1 {
 		liveId = args[1]
+		fullUrl := FULL_YT_URL + liveId
+		if config.Config.Youtube.SendMessage && !youtube_started {
+			msg := strings.ReplaceAll(config.Config.Youtube.Message, "$URL", fullUrl)
+			_, err := s.ChannelMessageSend(config.Config.Channels.Youtube, msg)
+			if err != nil {
+				log.Error("[startYtCommand]Error sending Youtube start message: " + err.Error())
+			} else {
+				youtube_started = true
+			}
+		}
+		if config.Config.Youtube.SetStatus {
+			err := s.UpdateStreamingStatus(0, config.Config.Youtube.StatusMsg, fullUrl)
+			if err != nil {
+				log.Error("[startYtCommand]Unable to update status: " + err.Error())
+			}
+		}
 	}
 	nm, err := s.ChannelMessageSend(m.ChannelID, START_YT_BOT)
 	if err != nil {
@@ -860,6 +881,16 @@ func stopYtCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 		log.Warn("[stopYtCommand]User: " + m.Author.ID + " tried to use command stopYt without permission.")
 		sendMessage(s, m.ChannelID, NO_AUTH, "[stopYtCommand][0]")
 		return
+	}
+	if youtube_started {
+		youtube_started = false
+		usd := discordgo.UpdateStatusData{
+			Status: "online",
+		}
+		err := s.UpdateStatusComplex(usd)
+		if err != nil {
+			log.Error("[stopYtCommand]Error clearing status: " + err.Error())
+		}
 	}
 	nm, err := s.ChannelMessageSend(m.ChannelID, STOP_YT_BOT)
 	if err != nil {

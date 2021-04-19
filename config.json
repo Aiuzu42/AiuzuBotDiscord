@@ -22,7 +22,8 @@
         "suggestions" : [],
         "reports" : "",
         "primerAviso" : "",
-        "botDM" : ""
+        "botDM" : "",
+        "youtube" : ""
     },
     "roles" : {
         "ultimatum" : "",
@@ -38,7 +39,11 @@
     }],
     "youtube" : {
         "url" : "",
-        "botName" : ""
+        "botName" : "",
+        "sendMessage" : false,
+        "setStatus" : false,
+        "message" : "",
+        "statusMsg" : ""
     },
     "messages" : {
         "primerAviso" : ""
