@@ -21,6 +21,7 @@ const (
 	START_YT_BOT   = "Se esta intentando iniciar el bot de Youtube, favor de esperar..."
 	STOP_YT_BOT    = "Se esta intentando detener el bot de Youtube, favor de esperar..."
 	FULL_YT_URL    = "https://www.youtube.com/watch?v="
+	SHORT_YT_URL   = "https://youtu.be/"
 )
 
 var (
@@ -842,9 +843,9 @@ func startYtCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []str
 	liveId := ""
 	if len(args) > 1 {
 		liveId = args[1]
-		fullUrl := FULL_YT_URL + liveId
 		if config.Config.Youtube.SendMessage && !youtube_started {
-			msg := strings.ReplaceAll(config.Config.Youtube.Message, "$URL", fullUrl)
+			shortUrl := SHORT_YT_URL + liveId
+			msg := strings.ReplaceAll(config.Config.Youtube.Message, "$URL", shortUrl)
 			_, err := s.ChannelMessageSend(config.Config.Channels.Youtube, msg)
 			if err != nil {
 				log.Error("[startYtCommand]Error sending Youtube start message: " + err.Error())
@@ -853,6 +854,7 @@ func startYtCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []str
 			}
 		}
 		if config.Config.Youtube.SetStatus {
+			fullUrl := FULL_YT_URL + liveId
 			err := s.UpdateStreamingStatus(0, config.Config.Youtube.StatusMsg, fullUrl)
 			if err != nil {
 				log.Error("[startYtCommand]Unable to update status: " + err.Error())
