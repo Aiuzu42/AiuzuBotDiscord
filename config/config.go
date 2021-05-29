@@ -11,18 +11,19 @@ import (
 )
 
 type configuration struct {
-	Server     string       `json:"server"`
-	Token      string       `json:"token"`
-	LogLevel   string       `json:"logLevel"`
-	DBConn     DBConnection `json:"dbConnection"`
-	Owners     []string     `json:"owners"`
-	Mods       []string     `json:"mods"`
-	Admins     []string     `json:"admins"`
-	Channels   ChannelsInfo `json:"channels"`
-	Roles      RolesInfo    `json:"roles"`
-	CustomSays []CustomSay  `json:"customSays"`
-	Youtube    YoutubeData  `json:"youtube"`
-	Messages   BotMessages  `json:"messages"`
+	Server            string                `json:"server"`
+	Token             string                `json:"token"`
+	LogLevel          string                `json:"logLevel"`
+	DBConn            DBConnection          `json:"dbConnection"`
+	Owners            []string              `json:"owners"`
+	Mods              []string              `json:"mods"`
+	Admins            []string              `json:"admins"`
+	Channels          ChannelsInfo          `json:"channels"`
+	Roles             RolesInfo             `json:"roles"`
+	CustomSays        []CustomSay           `json:"customSays"`
+	Youtube           YoutubeData           `json:"youtube"`
+	Messages          BotMessages           `json:"messages"`
+	LeaveNotification LeaveNotificationData `json:"leaveNotification"`
 }
 
 // DBConnections contains all the needed information to connect to a database.
@@ -38,12 +39,9 @@ type DBConnection struct {
 }
 
 type ChannelsInfo struct {
-	F           string   `json:"f"`
-	Ultimatum   string   `json:"ultimatum"`
 	Sancionados string   `json:"sancionados"`
 	Suggestions []string `json:"suggestions"`
 	Reports     string   `json:"reports"`
-	Primer      string   `json:"primerAviso"`
 	BotDM       string   `json:"botDM"`
 	Youtube     string   `json:"youtube"`
 }
@@ -54,12 +52,10 @@ type CustomSay struct {
 }
 
 type RolesInfo struct {
-	Ultimatum string `json:"ultimatum"`
-	Q         string `json:"q"`
-	A         string `json:"a"`
-	B         string `json:"b"`
-	C         string `json:"c"`
-	Silenced  string `json:"silenced"`
+	Q string `json:"q"`
+	A string `json:"a"`
+	B string `json:"b"`
+	C string `json:"c"`
 }
 
 type YoutubeData struct {
@@ -73,6 +69,11 @@ type YoutubeData struct {
 
 type BotMessages struct {
 	Primer string `json:"primerAviso"`
+}
+
+type LeaveNotificationData struct {
+	Active  bool   `json:"active"`
+	Channel string `json:"channel"`
 }
 
 const (

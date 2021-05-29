@@ -16,22 +16,17 @@
     "mods" : [],
     "admins" : [],
     "channels" : {
-        "f" : "",
-        "ultimatum" : "",
         "sancionados" : "",
         "suggestions" : [],
         "reports" : "",
-        "primerAviso" : "",
         "botDM" : "",
         "youtube" : ""
     },
     "roles" : {
-        "ultimatum" : "",
         "q" : "",
         "a" : "",
         "b" : "",
         "c" : "",
-        "silenced" : ""
     },
     "customSays" : [{
         "commandName" : "",
@@ -47,5 +42,9 @@
     },
     "messages" : {
         "primerAviso" : ""
+    },
+    "leaveNotification" : {
+        "active" : false,
+        "channel" : ""
     }
 }
