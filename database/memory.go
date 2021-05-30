@@ -46,31 +46,20 @@ func (m *Memory) IncreaseMessageCount(userID string) *dBError {
 	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
 
-func (m *Memory) AddJoinDate(userID string, date time.Time) (bool, *dBError) {
+func (m *Memory) AddJoinDate(userID string, date time.Time) *dBError {
 	for i := range m.db {
 		if userID == m.db[i].UserID {
 			m.db[i].Server.AppendJoinDate(date)
-			return m.db[i].Server.Ultimatum, nil
+			return nil
 		}
 	}
-	return false, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
 
-func (m *Memory) AddLeaveDate(userID string, date time.Time) (bool, *dBError) {
+func (m *Memory) AddLeaveDate(userID string, date time.Time) *dBError {
 	for i := range m.db {
 		if userID == m.db[i].UserID {
 			m.db[i].Server.AppendLeftDates(date)
-			return m.db[i].Server.Ultimatum, nil
-		}
-	}
-	return false, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
-}
-
-func (m *Memory) SetUltimatum(userID string) *dBError {
-	for i := range m.db {
-		if userID == m.db[i].UserID {
-			m.db[i].Server.Ultimatum = true
-			m.db[i].Sanctions.Aviso = true
 			return nil
 		}
 	}
@@ -83,16 +72,6 @@ func (m *Memory) IncreaseSanction(userID string, reason string, mod string, modN
 			m.db[i].Sanctions.Count = m.db[i].Sanctions.Count + 1
 			details := models.Details{AdminID: mod, AdminName: modName, Command: command, Date: time.Now().Format(time.RFC822), Notes: reason}
 			m.db[i].Sanctions.SanctionDetails = append(m.db[i].Sanctions.SanctionDetails, details)
-			return nil
-		}
-	}
-	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
-}
-
-func (m *Memory) SetPrimerAviso(userID string) *dBError {
-	for i := range m.db {
-		if userID == m.db[i].UserID {
-			m.db[i].Sanctions.Aviso = true
 			return nil
 		}
 	}

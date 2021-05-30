@@ -134,7 +134,9 @@ func updateUserData(m *discordgo.MessageCreate) {
 	dbErr := repo.IncreaseMessageCount(m.Author.ID)
 	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		user, errM := userAndMemberToLocalUser(m.Author, m.Member)
-		if errM != nil {
+		if errM != nil && errM.Error() == "webhook" {
+			return
+		} else if errM != nil {
 			log.Error("[updateUserData]Unable to create user: " + errM.Error())
 			return
 		}
@@ -285,7 +287,9 @@ func syncDatabase(s *discordgo.Session, m *discordgo.MessageCreate) {
 		full := member.User.Username + "#" + member.User.Discriminator
 		if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 			user, err := memberToLocalUser(member)
-			if err != nil {
+			if err != nil && err.Error() == "webhook" {
+				continue
+			} else if err != nil {
 				log.Error("[syncDatabase]Error parsing user info: " + err.Error())
 				continue
 			}

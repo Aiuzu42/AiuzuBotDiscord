@@ -14,6 +14,9 @@ func memberToLocalUser(m *discordgo.Member) (models.User, error) {
 		log.Error("[memberToLocalUser]Mandatory data missing")
 		return user, errors.New("Mandatory data missing")
 	}
+	if m.User.Discriminator == "0000" {
+		return user, errors.New("webhook")
+	}
 	user.UserID = m.User.ID
 	fullName := m.User.Username + "#" + m.User.Discriminator
 	user.FullName = fullName
@@ -33,6 +36,9 @@ func userAndMemberToLocalUser(u *discordgo.User, m *discordgo.Member) (models.Us
 	if u == nil {
 		log.Error("[userAndMemberToLocalUser]Mandatory data missing")
 		return user, errors.New("Mandatory data missing")
+	}
+	if u.Discriminator == "0000" {
+		return user, errors.New("webhook")
 	}
 	user.UserID = u.ID
 	fullName := u.Username + "#" + u.Discriminator

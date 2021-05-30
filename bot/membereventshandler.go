@@ -17,7 +17,9 @@ func NewMemberHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 	_, dbErr := repo.GetUser(m.Member.User.ID, "")
 	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		user, err := memberToLocalUser(m.Member)
-		if err != nil {
+		if err != nil && err.Error() == "webhook" {
+			return
+		} else if err != nil {
 			log.Error("[NewMemberHandler][" + m.User.ID + "] Unable to create user: " + err.Error())
 			return
 		}
@@ -29,7 +31,7 @@ func NewMemberHandler(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 		log.Error("[NewMemberHandler][" + m.User.ID + "] Database error: " + dbErr.Message)
 	} else {
 		ja := time.Now()
-		_, dbErr = repo.AddJoinDate(m.Member.User.ID, ja)
+		dbErr = repo.AddJoinDate(m.Member.User.ID, ja)
 		if dbErr != nil {
 			log.Error("[NewMemberHandler]Error adding join date: " + dbErr.Message)
 		}
@@ -42,11 +44,13 @@ func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 		return
 	}
 	msg := m.User.Username + "#" + m.User.Discriminator + " abandonó el servidor. ID: " + m.User.ID
-	ult, dbErr := repo.AddLeaveDate(m.Member.User.ID, time.Now())
+	dbErr := repo.AddLeaveDate(m.Member.User.ID, time.Now())
 	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		log.Info("[MemberLeaveHandler]Adding member that wasnt in DB and leave the server.")
 		user, err := memberToLocalUser(m.Member)
-		if err != nil {
+		if err != nil && err.Error() == "webhook" {
+			return
+		} else if err != nil {
 			log.Error("[MemberLeaveHandler]Unable to create user: " + err.Error())
 			return
 		}
@@ -60,9 +64,6 @@ func MemberLeaveHandler(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 		log.Warn("[MemberLeaveHandler]" + msg)
 		log.Error("[MemberLeaveHandler]Database error updating user: " + dbErr.Message)
 		return
-	}
-	if ult {
-		msg = msg + " y era ULTIMATUM."
 	}
 	if config.Config.LeaveNotification.Active {
 		_, err := s.ChannelMessageSend(config.Config.LeaveNotification.Channel, msg)

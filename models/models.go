@@ -21,7 +21,6 @@ type User struct {
 
 type Sanction struct {
 	Count           int       `bson:"count"`
-	Aviso           bool      `bson:"aviso"`
 	SanctionDetails []Details `bson:"sanctionDetails,omitempty"`
 }
 
@@ -37,8 +36,6 @@ type ServerDetails struct {
 	MessageCount int      `bson:"messageCount"`
 	JoinDates    []string `bson:"joinDates,omitempty"`
 	LeftDates    []string `bson:"leftDates,omitempty"`
-	Ultimatum    bool     `bson:"ultimatum"`
-	WasModerator bool     `bson:"wasModerator"`
 	LastMessage  string   `bson:"lastMessage"`
 }
 

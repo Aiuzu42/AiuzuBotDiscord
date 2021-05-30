@@ -110,10 +110,10 @@ func (m *MongoDB) IncreaseMessageCount(userID string) *dBError {
 // AddJoinDate looks for the document with the userID provided.
 // If found updates its server.JoinDates value.
 // If not found an error is returned.
-func (m *MongoDB) AddJoinDate(userID string, date time.Time) (bool, *dBError) {
-	user, dbErr := m.GetUser(userID, "")
+func (m *MongoDB) AddJoinDate(userID string, date time.Time) *dBError {
+	_, dbErr := m.GetUser(userID, "")
 	if dbErr != nil {
-		return false, dbErr
+		return dbErr
 	}
 	query := bson.M{
 		"userID": userID,
@@ -128,18 +128,18 @@ func (m *MongoDB) AddJoinDate(userID string, date time.Time) (bool, *dBError) {
 	}
 	_, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
 	if err != nil {
-		return false, &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
-	return user.Server.Ultimatum, nil
+	return nil
 }
 
 // AddLeaveDate looks for the document with the userID provided.
 // If found updates its server.leftDates value.
 // If not found an error is returned.
-func (m *MongoDB) AddLeaveDate(userID string, date time.Time) (bool, *dBError) {
-	user, dbErr := m.GetUser(userID, "")
+func (m *MongoDB) AddLeaveDate(userID string, date time.Time) *dBError {
+	_, dbErr := m.GetUser(userID, "")
 	if dbErr != nil {
-		return false, dbErr
+		return dbErr
 	}
 	findQuery := bson.M{
 		"userID": userID,
@@ -153,36 +153,6 @@ func (m *MongoDB) AddLeaveDate(userID string, date time.Time) (bool, *dBError) {
 		},
 	}
 	_, err := m.collection.UpdateOne(context.TODO(), findQuery, updateQuery)
-	if err != nil {
-		return false, &dBError{Code: DatabaseErrorCode, Message: err.Error()}
-	}
-	return user.Server.Ultimatum, nil
-}
-
-func (m *MongoDB) SetUltimatum(userID string) *dBError {
-	user, dbErr := m.GetUser(userID, "")
-	if dbErr != nil {
-		return dbErr
-	}
-	if user.Server.Ultimatum {
-		return &dBError{Code: UserAlredyInUltimatumCode, Message: UserAlredyInUltimatumMessage}
-	}
-	filter := bson.M{
-		"userID": userID,
-	}
-	updateQuery := bson.D{
-		{
-			Key: "$set", Value: bson.D{
-				{Key: "server.ultimatum", Value: true},
-			},
-		},
-		{
-			Key: "$set", Value: bson.D{
-				{Key: "sanctions.aviso", Value: true},
-			},
-		},
-	}
-	_, err := m.collection.UpdateOne(context.TODO(), filter, updateQuery)
 	if err != nil {
 		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
@@ -212,31 +182,6 @@ func (m *MongoDB) IncreaseSanction(userID string, reason string, mod string, mod
 	}
 	if ur.MatchedCount == 0 {
 		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
-	}
-	return nil
-}
-
-func (m *MongoDB) SetPrimerAviso(userID string) *dBError {
-	user, dbErr := m.GetUser(userID, "")
-	if dbErr != nil {
-		return dbErr
-	}
-	if user.Sanctions.Aviso {
-		return &dBError{Code: PrimerAvisoUnavailable, Message: PrimerAvisoUnavailableMessage}
-	}
-	filter := bson.M{
-		"userID": userID,
-	}
-	updateQuery := bson.D{
-		{
-			Key: "$set", Value: bson.D{
-				{Key: "sanctions.aviso", Value: true},
-			},
-		},
-	}
-	_, err := m.collection.UpdateOne(context.TODO(), filter, updateQuery)
-	if err != nil {
-		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
 	}
 	return nil
 }
