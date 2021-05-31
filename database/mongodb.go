@@ -227,7 +227,7 @@ func (m *MongoDB) ModifyVxp(userID string, vxp int) *dBError {
 	}
 	updateQuery := bson.D{
 		{
-			Key: "inc", Value: bson.D{
+			Key: "$inc", Value: bson.D{
 				{Key: "vxp", Value: vxp},
 			},
 		},

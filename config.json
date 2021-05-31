@@ -51,7 +51,7 @@
         "vxpMultipliers" : [
             {
                 "rol" : "",
-                "mult" : ""
+                "mult" : 0
             }
         ],
         "active" : false,
