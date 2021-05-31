@@ -47,6 +47,7 @@ func createMessageEmbedUserFull(user models.User) *discordgo.MessageEmbed {
 	}
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Numero de sanciones", Value: strconv.Itoa(user.Sanctions.Count)})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "N. de mensajes", Value: strconv.Itoa(user.Server.MessageCount)})
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "VXP", Value: strconv.Itoa(user.Vxp)})
 	if user.Server.LastMessage != "" {
 		fields = append(fields, &discordgo.MessageEmbedField{Name: "Ultimo mensaje", Value: user.Server.LastMessage})
 	}

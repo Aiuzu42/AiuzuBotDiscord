@@ -95,6 +95,10 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				go stopYtCommand(s, m)
 			case "dm", "md":
 				dmCommand(s, m, st)
+			case "modifyVxp":
+				modifyVxpCommand(s, m, args)
+			case "setVxp":
+				setVxpCommand(s, m, args)
 			default:
 				if IsMod(m.Member.Roles, m.Author.ID) {
 					sendMessage(s, m.ChannelID, "El comando que intentas usar no existe.", "[CommandsHandler][0]")
@@ -131,7 +135,11 @@ func updateUserData(m *discordgo.MessageCreate) {
 		log.Error("[updateUserData]Message with nil author")
 		return
 	}
-	dbErr := repo.IncreaseMessageCount(m.Author.ID)
+	mult := 0
+	if m.Member != nil {
+		mult = calculateVxp(m.Member.Roles, m.ChannelID)
+	}
+	dbErr := repo.IncreaseMessageCount(m.Author.ID, mult)
 	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		user, errM := userAndMemberToLocalUser(m.Author, m.Member)
 		if errM != nil && errM.Error() == "webhook" {
@@ -326,7 +334,7 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 	if st == "ayuda" || st == "help" {
 		response := "say\nreporte"
 		if level >= 1 {
-			response = response + "\ndetallesFull\nsancion\nactualizar\ncreatedDate\nversion\nmd\ndm"
+			response = response + "\ndetallesFull\nsancion\nactualizar\ncreatedDate\nversion\nmd\ndm\nmodifyVxp\nsetVxp"
 		}
 		if level >= 2 {
 			response = response + "\nstartYt\nstopYt\nsetStatus\nsetListenStatus\nsetStreamStatus"
@@ -438,6 +446,18 @@ func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 		}
 		desc = "Manda un MD al usuario del ID indicado"
 		synt = "ai!dm {id} {msg} ó ai!md {id} {msg}"
+	case "modifyVxp":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Incrementa o disminuye la Vxp del usuario en la cantidad indicada"
+		synt = "ai!modifyVxp {userID} {value}"
+	case "setVxp":
+		if level < 1 {
+			permError = true
+		}
+		desc = "Actualiza la Vxp del usuario a el valor indicado"
+		synt = "ai!setVxp {userID} {value}"
 	default:
 		permError = true
 	}
@@ -635,5 +655,62 @@ func dmCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
 	if err != nil {
 		log.Error("[dmCommand]Error sending DM: " + err.Error())
 		sendMessage(s, m.ChannelID, GENERIC_ERROR, "[sendMDCommand][3]")
+	}
+}
+
+func modifyVxpCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[modifyVxpCommand]User: " + m.Author.ID + " tried to use command modifyVxpCommand without permission.")
+		return
+	}
+	if len(args) < 3 {
+		sendMessage(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!modifyVxpCommand {userID} {value}", "[modifyVxpCommand][1]")
+		return
+	}
+	n, err := strconv.Atoi(args[2])
+	if err != nil {
+		sendMessage(s, m.ChannelID, "El segundo argumento no es valido, debe ser un numero entero (positivo o negativo).", "[modifyVxpCommand][2]")
+		return
+	}
+	dbErr := repo.ModifyVxp(args[1], n)
+	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
+		sendMessage(s, m.ChannelID, "No se encontro al usuario: "+args[1], "[modifyVxpCommand][3]")
+		return
+	} else if dbErr != nil {
+		log.Error("[modifyVxpCommand]Database error: " + dbErr.Message)
+		sendMessage(s, m.ChannelID, "Hubo un error en la base de datos: ", "[modifyVxpCommand][4]")
+		return
+	}
+	err = s.MessageReactionAdd(m.ChannelID, m.ID, "✅")
+	if err != nil {
+		log.Error("[modifyVxpCommand]Error adding reaction: " + err.Error())
+	}
+}
+func setVxpCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[setVxpCommand]User: " + m.Author.ID + " tried to use command setVxpCommand without permission.")
+		return
+	}
+	if len(args) < 3 {
+		sendMessage(s, m.ChannelID, "Numero de argumentos incorrecto, el comando es: ai!setVxpCommand {userID} {value}", "[setVxpCommand][1]")
+		return
+	}
+	n, err := strconv.Atoi(args[2])
+	if err != nil {
+		sendMessage(s, m.ChannelID, "El segundo argumento no es valido, debe ser un numero entero (positivo o negativo).", "[setVxpCommand][2]")
+		return
+	}
+	dbErr := repo.SetVxp(args[1], n)
+	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
+		sendMessage(s, m.ChannelID, "No se encontro al usuario: "+args[1], "[setVxpCommand][3]")
+		return
+	} else if dbErr != nil {
+		log.Error("[setVxpCommand]Database error: " + dbErr.Message)
+		sendMessage(s, m.ChannelID, "Hubo un error en la base de datos: ", "[setVxpCommand][4]")
+		return
+	}
+	err = s.MessageReactionAdd(m.ChannelID, m.ID, "✅")
+	if err != nil {
+		log.Error("[setVxpCommand]Error adding reaction: " + err.Error())
 	}
 }

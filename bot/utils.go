@@ -2,6 +2,7 @@ package bot
 
 import (
 	"errors"
+	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"strings"
 
 	"github.com/aiuzu42/AiuzuBotDiscord/database"
@@ -63,4 +64,22 @@ func saySplit(st string) string {
 	args := strings.Split(st, " ")
 	msg = strings.Join(args[1:], " ")
 	return msg
+}
+
+func calculateVxp(roles []string, ch string) int {
+	if !config.Config.Vxp.Active || findIfExists(ch, config.Config.Vxp.IgnoredChannels) {
+		return 0
+	}
+	max := 1
+	for _, m := range config.Config.Vxp.VxpMultipliers {
+		if findIfExists(m.Rol, roles) {
+			if m.Mult == 0 {
+				return 0
+			}
+			if m.Mult > max {
+				max = m.Mult
+			}
+		}
+	}
+	return max
 }

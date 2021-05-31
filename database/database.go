@@ -25,13 +25,15 @@ type Databse interface {
 	InitDB(c config.DBConnection) *dBError
 	GetUser(userID string, username string) (models.User, *dBError)
 	AddUser(user models.User) *dBError
-	IncreaseMessageCount(userID string) *dBError
+	IncreaseMessageCount(userID string, xp int) *dBError
 	AddJoinDate(userID string, date time.Time) *dBError
 	AddLeaveDate(userID string, date time.Time) *dBError
 	IncreaseSanction(userID string, reason string, mod string, modName string, command string) *dBError
 	UpdateUser(userID string) *dBError
 	AddToUpdateQuery(t string, key string, value string)
 	ClearUpdateQuery()
+	ModifyVxp(userID string, vxp int) *dBError
+	SetVxp(userID string, vxp int) *dBError
 }
 
 type dBError struct {

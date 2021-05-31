@@ -36,10 +36,11 @@ func (m *Memory) AddUser(user models.User) *dBError {
 	return nil
 }
 
-func (m *Memory) IncreaseMessageCount(userID string) *dBError {
+func (m *Memory) IncreaseMessageCount(userID string, xp int) *dBError {
 	for i := range m.db {
 		if userID == m.db[i].UserID {
 			m.db[i].Server.MessageCount = m.db[i].Server.MessageCount + 1
+			m.db[i].Vxp = m.db[i].Vxp + xp
 			return nil
 		}
 	}
@@ -109,4 +110,24 @@ func (m *Memory) AddToUpdateQuery(t string, key string, value string) {
 func (m *Memory) ClearUpdateQuery() {
 	m.updateQuery = make(map[string]string)
 	m.queryStatus = false
+}
+
+func (m *Memory) ModifyVxp(userID string, vxp int) *dBError {
+	for i := range m.db {
+		if m.db[i].UserID == userID {
+			m.db[i].Vxp = m.db[i].Vxp + vxp
+			return nil
+		}
+	}
+	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+}
+
+func (m *Memory) SetVxp(userID string, vxp int) *dBError {
+	for i := range m.db {
+		if m.db[i].UserID == userID {
+			m.db[i].Vxp = vxp
+			return nil
+		}
+	}
+	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }

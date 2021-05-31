@@ -24,6 +24,7 @@ type configuration struct {
 	Youtube           YoutubeData           `json:"youtube"`
 	Messages          BotMessages           `json:"messages"`
 	LeaveNotification LeaveNotificationData `json:"leaveNotification"`
+	Vxp               VxpConfig             `json:"vxp"`
 }
 
 // DBConnections contains all the needed information to connect to a database.
@@ -74,6 +75,17 @@ type BotMessages struct {
 type LeaveNotificationData struct {
 	Active  bool   `json:"active"`
 	Channel string `json:"channel"`
+}
+
+type VxpConfig struct {
+	VxpMultipliers  []VxpMultiplier `json:"vxpMultipliers"`
+	Active          bool            `json:"active"`
+	IgnoredChannels []string        `json:"ignoredChannels"`
+}
+
+type VxpMultiplier struct {
+	Rol  string `json:"rol"`
+	Mult int    `json:"mult"`
 }
 
 const (

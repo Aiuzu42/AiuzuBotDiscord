@@ -80,7 +80,7 @@ func (m *MongoDB) AddUser(user models.User) *dBError {
 // IncreaseMessageCount searches for the document with the provided userID.
 // If found, it increases its server.messageCount value and updates server.lastMessage.
 // If the user is not found an error is returned.
-func (m *MongoDB) IncreaseMessageCount(userID string) *dBError {
+func (m *MongoDB) IncreaseMessageCount(userID string, xp int) *dBError {
 	query := bson.M{
 		"userID": userID,
 	}
@@ -90,7 +90,12 @@ func (m *MongoDB) IncreaseMessageCount(userID string) *dBError {
 			Key: "$inc", Value: bson.D{
 				{Key: "server.messageCount", Value: 1},
 			},
+		}, {
+			Key: "$inc", Value: bson.D{
+				{Key: "vxp", Value: xp},
+			},
 		},
+
 		{
 			Key: "$set", Value: bson.D{
 				{Key: "server.lastMessage", Value: lastMessage},
@@ -214,4 +219,46 @@ func (m *MongoDB) AddToUpdateQuery(t string, key string, value string) {
 func (m *MongoDB) ClearUpdateQuery() {
 	m.updateQuery = bson.D{}
 	m.queryStatus = false
+}
+
+func (m *MongoDB) ModifyVxp(userID string, vxp int) *dBError {
+	query := bson.M{
+		"userID": userID,
+	}
+	updateQuery := bson.D{
+		{
+			Key: "inc", Value: bson.D{
+				{Key: "vxp", Value: vxp},
+			},
+		},
+	}
+	ur, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	if err != nil {
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+	}
+	if ur.MatchedCount == 0 {
+		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	}
+	return nil
+}
+
+func (m *MongoDB) SetVxp(userID string, vxp int) *dBError {
+	query := bson.M{
+		"userID": userID,
+	}
+	updateQuery := bson.D{
+		{
+			Key: "$set", Value: bson.D{
+				{Key: "vxp", Value: vxp},
+			},
+		},
+	}
+	ur, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	if err != nil {
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+	}
+	if ur.MatchedCount == 0 {
+		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	}
+	return nil
 }
