@@ -163,7 +163,7 @@ func updateUserData(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if !m.Author.Bot {
 		rol, toDelete, ups := caluclateRolUpgrade(user.Vxp, mult)
 		if ups && m.Member != nil {
-			go setNewRoles(s, m.Member.GuildID, m.Member.User.ID, rol, toDelete, m.Member.Roles)
+			go setNewRoles(s, m.Member.GuildID, m.Author.ID, rol, toDelete, m.Member.Roles)
 		}
 	}
 }
