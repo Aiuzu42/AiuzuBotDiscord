@@ -36,15 +36,15 @@ func (m *Memory) AddUser(user models.User) *dBError {
 	return nil
 }
 
-func (m *Memory) IncreaseMessageCount(userID string, xp int) *dBError {
+func (m *Memory) IncreaseMessageCount(userID string, xp int) (models.User, *dBError) {
 	for i := range m.db {
 		if userID == m.db[i].UserID {
 			m.db[i].Server.MessageCount = m.db[i].Server.MessageCount + 1
 			m.db[i].Vxp = m.db[i].Vxp + xp
-			return nil
+			return m.db[i], nil
 		}
 	}
-	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	return models.User{}, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
 
 func (m *Memory) AddJoinDate(userID string, date time.Time) *dBError {
@@ -67,16 +67,16 @@ func (m *Memory) AddLeaveDate(userID string, date time.Time) *dBError {
 	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
 
-func (m *Memory) IncreaseSanction(userID string, reason string, mod string, modName string, command string) *dBError {
+func (m *Memory) IncreaseSanction(userID string, reason string, mod string, modName string, command string) (models.User, *dBError) {
 	for i := range m.db {
 		if userID == m.db[i].UserID {
 			m.db[i].Sanctions.Count = m.db[i].Sanctions.Count + 1
 			details := models.Details{AdminID: mod, AdminName: modName, Command: command, Date: time.Now().Format(time.RFC822), Notes: reason}
 			m.db[i].Sanctions.SanctionDetails = append(m.db[i].Sanctions.SanctionDetails, details)
-			return nil
+			return m.db[i], nil
 		}
 	}
-	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	return models.User{}, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
 
 func (m *Memory) UpdateUser(userID string) *dBError {
@@ -112,14 +112,14 @@ func (m *Memory) ClearUpdateQuery() {
 	m.queryStatus = false
 }
 
-func (m *Memory) ModifyVxp(userID string, vxp int) *dBError {
+func (m *Memory) ModifyVxp(userID string, vxp int) (int, *dBError) {
 	for i := range m.db {
 		if m.db[i].UserID == userID {
 			m.db[i].Vxp = m.db[i].Vxp + vxp
-			return nil
+			return m.db[i].Vxp, nil
 		}
 	}
-	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	return 0, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
 
 func (m *Memory) SetVxp(userID string, vxp int) *dBError {

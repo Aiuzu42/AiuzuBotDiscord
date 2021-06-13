@@ -45,6 +45,8 @@ type ChannelsInfo struct {
 	Reports     string   `json:"reports"`
 	BotDM       string   `json:"botDM"`
 	Youtube     string   `json:"youtube"`
+	Upgrades    string   `json:"upgrades"`
+	Logs        string   `json:"logs"`
 }
 
 type CustomSay struct {
@@ -81,11 +83,18 @@ type VxpConfig struct {
 	VxpMultipliers  []VxpMultiplier `json:"vxpMultipliers"`
 	Active          bool            `json:"active"`
 	IgnoredChannels []string        `json:"ignoredChannels"`
+	RolUpgrades     []RolUpgrade    `json:"rolUpgrades"`
 }
 
 type VxpMultiplier struct {
 	Rol  string `json:"rol"`
 	Mult int    `json:"mult"`
+}
+
+type RolUpgrade struct {
+	Rol      string   `json:"rol"`
+	Value    int      `json:"value"`
+	ToDelete []string `json:"toDelete"`
 }
 
 const (

@@ -44,7 +44,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		log.Warn("[CommandsHandler]Returned because wrong server " + m.GuildID + " " + gName)
 		return
 	}
-	updateUserData(m)
+	updateUserData(s, m)
 
 	if findIfExists(m.ChannelID, config.Config.Channels.Suggestions) {
 		convertToSuggestion(s, m)
@@ -130,16 +130,19 @@ func customSayCommand(s *discordgo.Session, m *discordgo.MessageCreate, tarCh st
 	sayCommand(s, m.ChannelID, tarCh, m.ID, st)
 }
 
-func updateUserData(m *discordgo.MessageCreate) {
+func updateUserData(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author == nil {
 		log.Error("[updateUserData]Message with nil author")
+		return
+	}
+	if m.Author.Discriminator == "0000" {
 		return
 	}
 	mult := 0
 	if m.Member != nil {
 		mult = calculateVxp(m.Member.Roles, m.ChannelID)
 	}
-	dbErr := repo.IncreaseMessageCount(m.Author.ID, mult)
+	user, dbErr := repo.IncreaseMessageCount(m.Author.ID, mult)
 	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		user, errM := userAndMemberToLocalUser(m.Author, m.Member)
 		if errM != nil && errM.Error() == "webhook" {
@@ -152,8 +155,16 @@ func updateUserData(m *discordgo.MessageCreate) {
 		if dbErr != nil {
 			log.Error("[updateUserData]Unable to store user in database: " + dbErr.Message)
 		}
+		return
 	} else if dbErr != nil {
 		log.Error("[updateUserData]Error trying to increase message count: " + dbErr.Message)
+		return
+	}
+	if !m.Author.Bot {
+		rol, toDelete, ups := caluclateRolUpgrade(user.Vxp, mult)
+		if ups && m.Member != nil {
+			go setNewRoles(s, m.Member.GuildID, m.Member.User.ID, rol, toDelete, m.Member.Roles)
+		}
 	}
 }
 func fullDetailsCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
@@ -317,7 +328,42 @@ func syncDatabase(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func sancionCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
-	s.ChannelMessageSend(m.ChannelID, "IN MAINTENANCE")
+	if !IsMod(m.Member.Roles, m.Author.ID) {
+		log.Warn("[sancionCommand]User: " + m.Author.ID + " tried to use command sancionCommand without permission.")
+		return
+	}
+	id, reason := argumentsHandler(st)
+	if id == "" {
+		log.Error("[sancionCommand]Invalid number of arguments")
+		sendMessage(s, m.ChannelID, "Numero de argumentos incorrecto, favor de revisar el comando", "[sancionCommand][0]")
+		return
+	}
+	user, dbErr := repo.IncreaseSanction(id, reason, m.Author.ID, m.Author.Username, "sancionCommand")
+	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
+		sendMessage(s, m.ChannelID, "No se encontro al usuario: "+id, "[sancionCommand][1]")
+		return
+	} else if dbErr != nil {
+		log.Error("[sancionCommand]Unable to add sanction to database: " + dbErr.Message)
+		sendMessage(s, m.ChannelID, "Hubo un error en la base de datos al agregar la sancion", "[sancionCommand][2]")
+		return
+	}
+	dbErr = repo.SetVxp(id, 0)
+	if dbErr != nil {
+		log.Error("[sancionCommand]Unable to reset vxp: " + dbErr.Message)
+		sendMessage(s, m.ChannelID, "Hubo un error en la base de datos al resetear vxp", "[sancionCommand][3]")
+		return
+	}
+	err := DowngradeToC(s, id, m.GuildID)
+	if err != nil {
+		log.Error("[sancionCommand]Unable downgrade roles: " + err.Error())
+		sendMessage(s, m.ChannelID, "Hubo un error al actualizar los roles", "[sancionCommand][4]")
+		return
+	}
+	_, err = s.ChannelMessageSendEmbed(config.Config.Channels.Sancionados, createMessageEmbedSancion(id, user.FullName, reason, user.Sanctions.Count))
+	if err != nil {
+		log.Error("[sancionCommand]Unable to send sanction message: " + err.Error())
+		sendMessage(s, m.ChannelID, "Hubo un error al enviar mensaje de sancion", "[sancionCommand][5]")
+	}
 }
 
 func ayudaCommand(s *discordgo.Session, m *discordgo.MessageCreate, st string) {
@@ -672,7 +718,7 @@ func modifyVxpCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []s
 		sendMessage(s, m.ChannelID, "El segundo argumento no es valido, debe ser un numero entero (positivo o negativo).", "[modifyVxpCommand][2]")
 		return
 	}
-	dbErr := repo.ModifyVxp(args[1], n)
+	after, dbErr := repo.ModifyVxp(args[1], n)
 	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 		sendMessage(s, m.ChannelID, "No se encontro al usuario: "+args[1], "[modifyVxpCommand][3]")
 		return
@@ -680,6 +726,18 @@ func modifyVxpCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []s
 		log.Error("[modifyVxpCommand]Database error: " + dbErr.Message)
 		sendMessage(s, m.ChannelID, "Hubo un error en la base de datos: ", "[modifyVxpCommand][4]")
 		return
+	}
+	if n > 0 {
+		member, err := GetMemberInfo(s, args[1])
+		if err != nil {
+			log.Error("[modifyVxpCommand]Unable to get member info: " + err.Error())
+			sendMessage(s, m.ChannelID, "Hubo un error obteniendo informacion para actualizar roles", "[modifyVxpCommand][0]")
+			return
+		}
+		newRol, toDelete, up := caluclateRolUpgrade(after, n)
+		if up {
+			setNewRoles(s, m.GuildID, args[1], newRol, toDelete, member.Roles)
+		}
 	}
 	err = s.MessageReactionAdd(m.ChannelID, m.ID, "✅")
 	if err != nil {
@@ -712,5 +770,19 @@ func setVxpCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []stri
 	err = s.MessageReactionAdd(m.ChannelID, m.ID, "✅")
 	if err != nil {
 		log.Error("[setVxpCommand]Error adding reaction: " + err.Error())
+	}
+}
+
+func setNewRoles(s *discordgo.Session, guildId string, userId string, rol string, toDelete []string, roles []string) {
+	newRoles := setupRolUpgrade(rol, toDelete, roles)
+	err := s.GuildMemberEdit(guildId, userId, newRoles)
+	if err != nil {
+		log.Error("[setNewRoles]Unable to set Roles: " + err.Error())
+		sendMessage(s, config.Config.Channels.Logs, "Hubo un error actualizando un rol", "[setNewRoles][0]")
+		return
+	}
+	_, err = s.ChannelMessageSendEmbed(config.Config.Channels.Upgrades, createRolUpgradeMessage(userId))
+	if err != nil {
+		log.Error("[setNewRoles]Unable send rol message: " + err.Error())
 	}
 }

@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"fmt"
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"github.com/bwmarrin/discordgo"
 )
@@ -59,21 +60,31 @@ func findIfExists(a string, b []string) bool {
 	return false
 }
 
-func Is_Q_A_B(roles []string) bool {
-	return arrayFindIfExists(roles, []string{config.Config.Roles.Q, config.Config.Roles.A, config.Config.Roles.B})
-}
-
 func GetMemberInfo(s *discordgo.Session, userID string) (*discordgo.Member, error) {
 	return s.GuildMember(config.Config.Server, userID)
 }
 
-func DowngradeToC(roles []string) []string {
+func DowngradeToC(s *discordgo.Session, userID string, guildID string) error {
+	m, err := s.GuildMember(guildID, userID)
+	if err != nil {
+		return fmt.Errorf("error finding info of user %s", userID)
+	}
 	newRoles := []string{}
-	for _, role := range roles {
-		if role != config.Config.Roles.Q && role != config.Config.Roles.A && role != config.Config.Roles.B && role != config.Config.Roles.C {
-			newRoles = append(newRoles, role)
+	c := false
+	for _, r := range m.Roles {
+		if r != config.Config.Roles.Q && r != config.Config.Roles.A && r != config.Config.Roles.B {
+			newRoles = append(newRoles, r)
+		}
+		if r == config.Config.Roles.C {
+			c = true
 		}
 	}
-	newRoles = append(newRoles, config.Config.Roles.C)
-	return newRoles
+	if !c {
+		newRoles = append(newRoles, config.Config.Roles.C)
+	}
+	err = s.GuildMemberEdit(guildID, userID, newRoles)
+	if err != nil {
+		return fmt.Errorf("error editing roles for user %s", userID)
+	}
+	return nil
 }

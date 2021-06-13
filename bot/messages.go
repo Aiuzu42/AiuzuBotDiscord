@@ -23,7 +23,7 @@ const (
 func createMessageEmbedUserFull(user models.User) *discordgo.MessageEmbed {
 	me := discordgo.MessageEmbed{}
 	me.Title = "Información del usuario " + user.Name
-	fields := []*discordgo.MessageEmbedField{}
+	var fields []*discordgo.MessageEmbedField
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "ID", Value: user.UserID})
 	if user.Nickname != "" {
 		fields = append(fields, &discordgo.MessageEmbedField{Name: "Apodo", Value: user.Nickname})
@@ -69,23 +69,22 @@ func createMessageEmbedUserFull(user models.User) *discordgo.MessageEmbed {
 	return &me
 }
 
-func createMessageEmbedSancion(id string, fullName string, reason string, n int, action string) *discordgo.MessageEmbed {
+func createMessageEmbedSancion(id string, fullName string, reason string, n int) *discordgo.MessageEmbed {
 	me := discordgo.MessageEmbed{}
-	me.Title = "Sancion normal aplicada"
-	fields := []*discordgo.MessageEmbedField{}
+	me.Title = "Sancion aplicada"
+	var fields []*discordgo.MessageEmbedField
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Sancionado:", Value: fullName})
-	fields = append(fields, &discordgo.MessageEmbedField{Name: "ID:", Value: id})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Razón", Value: reason})
-	fields = append(fields, &discordgo.MessageEmbedField{Name: "Acción", Value: action})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Sanciones totales", Value: strconv.Itoa(n)})
 	me.Fields = fields
+	me.Description = "<@" + id + ">"
 	return &me
 }
 
 func createMessageGeneralHelp(commands string) *discordgo.MessageEmbed {
 	me := discordgo.MessageEmbed{}
 	me.Title = "Ayuda de AiuzuBot"
-	fields := []*discordgo.MessageEmbedField{}
+	var fields []*discordgo.MessageEmbedField
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Comandos disponibles:", Value: commands})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Mas ayuda:", Value: "Para obtener mas informacion de cada comando usa:\nai!ayuda nombre_del_comando"})
 	me.Fields = fields
@@ -95,7 +94,7 @@ func createMessageGeneralHelp(commands string) *discordgo.MessageEmbed {
 func createMessageCommandHelp(command string, desc string, synt string) *discordgo.MessageEmbed {
 	me := discordgo.MessageEmbed{}
 	me.Title = "Ayuda de " + command
-	fields := []*discordgo.MessageEmbedField{}
+	var fields []*discordgo.MessageEmbedField
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Descripcion:", Value: desc})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Syntaxis:", Value: synt})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Notas:", Value: "Si algo esta entre {} significa que es obligatorio, si algo esta entre [] significa que es opcional."})
@@ -106,7 +105,7 @@ func createMessageCommandHelp(command string, desc string, synt string) *discord
 func createMessageReport(reporterID string, reporterName string, reportedID string, reportedName string, reason string) *discordgo.MessageEmbed {
 	me := discordgo.MessageEmbed{}
 	me.Title = "Reporte"
-	fields := []*discordgo.MessageEmbedField{}
+	var fields []*discordgo.MessageEmbedField
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Quien reporta:", Value: reporterID + "\n" + reporterName})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Reportado:", Value: reportedID + "\n" + reportedName})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Razón:", Value: reason})
@@ -118,7 +117,7 @@ func createMessageReport(reporterID string, reporterName string, reportedID stri
 func createMessageReportBasic(reporterID string, reporterName string, reason string) *discordgo.MessageEmbed {
 	me := discordgo.MessageEmbed{}
 	me.Title = "Reporte"
-	fields := []*discordgo.MessageEmbedField{}
+	var fields []*discordgo.MessageEmbedField
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Quien reporta:", Value: reporterID + "\n" + reporterName})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Que reporta:", Value: reason})
 	me.Fields = fields
@@ -129,10 +128,18 @@ func createMessageReportBasic(reporterID string, reporterName string, reason str
 func createMessageEmbedDMLog(user string, msg string) *discordgo.MessageEmbed {
 	me := discordgo.MessageEmbed{}
 	me.Title = "Aiuzu Bot DM"
-	fields := []*discordgo.MessageEmbedField{}
+	var fields []*discordgo.MessageEmbedField
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Usuario:", Value: "<@" + user + ">"})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Msg:", Value: msg})
 	me.Fields = fields
 	me.Color = LIGHT_BLUE
+	return &me
+}
+
+func createRolUpgradeMessage(user string) *discordgo.MessageEmbed {
+	me := discordgo.MessageEmbed{}
+	me.Title = "Subio de rango!"
+	me.Description = "<@" + user + "> acabas de subir de rango en el server!"
+	me.Color = PURPLE
 	return &me
 }

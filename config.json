@@ -20,7 +20,9 @@
         "suggestions" : [],
         "reports" : "",
         "botDM" : "",
-        "youtube" : ""
+        "youtube" : "",
+        "upgrades" : "",
+        "logs" : ""
     },
     "roles" : {
         "q" : "",
@@ -52,6 +54,13 @@
             {
                 "rol" : "",
                 "mult" : 0
+            }
+        ],
+        "rolUpgrades" : [
+            {
+                "rol" : "",
+                "value" : 0,
+                "toDelete" : []
             }
         ],
         "active" : false,

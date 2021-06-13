@@ -80,7 +80,7 @@ func (m *MongoDB) AddUser(user models.User) *dBError {
 // IncreaseMessageCount searches for the document with the provided userID.
 // If found, it increases its server.messageCount value and updates server.lastMessage.
 // If the user is not found an error is returned.
-func (m *MongoDB) IncreaseMessageCount(userID string, xp int) *dBError {
+func (m *MongoDB) IncreaseMessageCount(userID string, xp int) (models.User, *dBError) {
 	query := bson.M{
 		"userID": userID,
 	}
@@ -102,14 +102,20 @@ func (m *MongoDB) IncreaseMessageCount(userID string, xp int) *dBError {
 			},
 		},
 	}
-	ur, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	var user models.User
+	after := options.After
+	opts := &options.FindOneAndUpdateOptions{ReturnDocument: &after}
+	sr := m.collection.FindOneAndUpdate(context.TODO(), query, updateQuery, opts)
+	if sr.Err() != nil && sr.Err() == mongo.ErrNoDocuments {
+		return user, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	} else if sr.Err() != nil {
+		return user, &dBError{Code: DatabaseErrorCode, Message: sr.Err().Error()}
+	}
+	err := sr.Decode(&user)
 	if err != nil {
-		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+		return user, &dBError{Code: DecodingErrorCode, Message: err.Error()}
 	}
-	if ur.MatchedCount == 0 {
-		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
-	}
-	return nil
+	return user, nil
 }
 
 // AddJoinDate looks for the document with the userID provided.
@@ -164,7 +170,7 @@ func (m *MongoDB) AddLeaveDate(userID string, date time.Time) *dBError {
 	return nil
 }
 
-func (m *MongoDB) IncreaseSanction(userID string, reason string, mod string, modName string, command string) *dBError {
+func (m *MongoDB) IncreaseSanction(userID string, reason string, mod string, modName string, command string) (models.User, *dBError) {
 	details := models.Details{AdminID: mod, AdminName: modName, Command: command, Date: time.Now().Format(time.RFC822), Notes: reason}
 	query := bson.M{
 		"userID": userID,
@@ -181,14 +187,20 @@ func (m *MongoDB) IncreaseSanction(userID string, reason string, mod string, mod
 			},
 		},
 	}
-	ur, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	var user models.User
+	after := options.After
+	opts := &options.FindOneAndUpdateOptions{ReturnDocument: &after}
+	sr := m.collection.FindOneAndUpdate(context.TODO(), query, updateQuery, opts)
+	if sr.Err() != nil && sr.Err() == mongo.ErrNoDocuments {
+		return user, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	} else if sr.Err() != nil {
+		return user, &dBError{Code: DatabaseErrorCode, Message: sr.Err().Error()}
+	}
+	err := sr.Decode(&user)
 	if err != nil {
-		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+		return user, &dBError{Code: DecodingErrorCode, Message: err.Error()}
 	}
-	if ur.MatchedCount == 0 {
-		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
-	}
-	return nil
+	return user, nil
 }
 
 func (m *MongoDB) UpdateUser(userID string) *dBError {
@@ -221,7 +233,7 @@ func (m *MongoDB) ClearUpdateQuery() {
 	m.queryStatus = false
 }
 
-func (m *MongoDB) ModifyVxp(userID string, vxp int) *dBError {
+func (m *MongoDB) ModifyVxp(userID string, vxp int) (int, *dBError) {
 	query := bson.M{
 		"userID": userID,
 	}
@@ -232,14 +244,20 @@ func (m *MongoDB) ModifyVxp(userID string, vxp int) *dBError {
 			},
 		},
 	}
-	ur, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	var user models.User
+	after := options.After
+	opts := &options.FindOneAndUpdateOptions{ReturnDocument: &after}
+	sr := m.collection.FindOneAndUpdate(context.TODO(), query, updateQuery, opts)
+	if sr.Err() != nil && sr.Err() == mongo.ErrNoDocuments {
+		return 0, &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	} else if sr.Err() != nil {
+		return 0, &dBError{Code: DatabaseErrorCode, Message: sr.Err().Error()}
+	}
+	err := sr.Decode(&user)
 	if err != nil {
-		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+		return 0, &dBError{Code: DecodingErrorCode, Message: err.Error()}
 	}
-	if ur.MatchedCount == 0 {
-		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
-	}
-	return nil
+	return user.Vxp, nil
 }
 
 func (m *MongoDB) SetVxp(userID string, vxp int) *dBError {

@@ -28,6 +28,7 @@ func memberToLocalUser(m *discordgo.Member) (models.User, error) {
 	} else {
 		user.Server.AppendJoinDate(t)
 	}
+	user.Vxp = 0
 	return user, nil
 }
 
@@ -53,5 +54,6 @@ func userAndMemberToLocalUser(u *discordgo.User, m *discordgo.Member) (models.Us
 			user.Server.AppendJoinDate(t)
 		}
 	}
+	user.Vxp = 0
 	return user, nil
 }

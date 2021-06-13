@@ -83,3 +83,30 @@ func calculateVxp(roles []string, ch string) int {
 	}
 	return max
 }
+
+func caluclateRolUpgrade(vxp int, mult int) (string, []string, bool) {
+	prev := vxp - mult
+	for _, up := range config.Config.Vxp.RolUpgrades {
+		if prev < up.Value && vxp >= up.Value {
+			return up.Rol, up.ToDelete, true
+		}
+	}
+	return "", nil, false
+}
+
+func setupRolUpgrade(rol string, toDelete []string, roles []string) []string {
+	var toReturn []string
+	found := false
+	for _, r := range roles {
+		if r == rol {
+			found = true
+		}
+		if !findIfExists(r, toDelete) {
+			toReturn = append(toReturn, r)
+		}
+	}
+	if !found {
+		toReturn = append(toReturn, rol)
+	}
+	return toReturn
+}
