@@ -163,7 +163,7 @@ func updateUserData(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if !m.Author.Bot {
 		rol, toDelete, ups := caluclateRolUpgrade(user.Vxp, mult)
 		if ups && m.Member != nil {
-			go setNewRoles(s, m.Member.GuildID, m.Author.ID, rol, toDelete, m.Member.Roles)
+			go setNewRoles(s, m.GuildID, m.Author.ID, rol, toDelete, m.Member.Roles)
 		}
 	}
 }
@@ -775,15 +775,6 @@ func setVxpCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []stri
 
 func setNewRoles(s *discordgo.Session, guildId string, userId string, rol string, toDelete []string, roles []string) {
 	newRoles := setupRolUpgrade(rol, toDelete, roles)
-	toDeleteString := ""
-	for _, td := range toDelete {
-		toDeleteString = toDeleteString + "," + td
-	}
-	rolesString := ""
-	for _, td := range roles {
-		rolesString = rolesString + "," + td
-	}
-	sendMessage(s, config.Config.Channels.Logs, "guildId:"+guildId+" userID:"+userId+" rol:"+rol+" toDelete:"+toDeleteString+" roles:"+rolesString, "[setNewRoles][-1]")
 	err := s.GuildMemberEdit(guildId, userId, newRoles)
 	if err != nil {
 		log.Error("[setNewRoles]Unable to set Roles: " + err.Error())
