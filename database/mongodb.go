@@ -290,11 +290,11 @@ func (m *MongoDB) ResetVxpDay(userID string, today int64) *dBError {
 	}
 	updateQuery := bson.D{
 		{
-			Key: "set", Value: bson.D{
+			Key: "$set", Value: bson.D{
 				{Key: "vxpToday", Value: 0},
 			},
 		}, {
-			Key: "set", Value: bson.D{
+			Key: "$set", Value: bson.D{
 				{Key: "dayVxp", Value: today},
 			},
 		},
