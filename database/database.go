@@ -34,6 +34,7 @@ type Databse interface {
 	ClearUpdateQuery()
 	ModifyVxp(userID string, vxp int) (int, *dBError)
 	SetVxp(userID string, vxp int) *dBError
+	ResetVxpDay(userID string, today int64) *dBError
 }
 
 type dBError struct {

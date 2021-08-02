@@ -64,6 +64,7 @@
             }
         ],
         "active" : false,
-        "ignoredChannels" : []
+        "ignoredChannels" : [],
+        "maxPerDay" : 0
     }
 }

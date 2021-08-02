@@ -1,6 +1,9 @@
 package bot
 
 import (
+	"errors"
+	"fmt"
+	"github.com/aiuzu42/AiuzuBotDiscord/models"
 	"strconv"
 	"strings"
 	"time"
@@ -139,34 +142,72 @@ func updateUserData(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	mult := 0
-	if m.Member != nil {
-		mult = calculateVxp(m.Member.Roles, m.ChannelID)
+	if config.Config.Vxp.Active {
+		user, dbErr := repo.GetUser(m.Author.ID, "")
+		prevDay := user.DayVxp
+		if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
+			var err error
+			user, err = newUser(m)
+			if err != nil {
+				if err.Error() != "webhook" {
+					log.Error("[updateUserData]Error trying to add user in increase message count: " + err.Error())
+				}
+				return
+			}
+		} else if dbErr != nil {
+			log.Error("[updateUserData]Error trying to get info for Vxp: " + dbErr.Message)
+			return
+		}
+		reset := false
+		if m.Member != nil {
+			mult, reset = calculateVxp(m.Member.Roles, m.ChannelID, user.DayVxp, user.VxpToday)
+		}
+		if reset {
+			dbErr := repo.ResetVxpDay(m.Author.ID, newToday())
+			if dbErr != nil {
+				log.Error("[updateUserData]Error trying to reset vxp count: " + dbErr.Message)
+				sendMessage(s, config.Config.Channels.Logs, "[updateUserData]Error trying to reset vxp count: "+dbErr.Message, "[updateUserData]Error trying to reset vxp count: ")
+			} else {
+				sendMessage(s, config.Config.Channels.Logs, fmt.Sprintf("Day reset for: %s. Previous: %d. New: %d.", user.UserID, prevDay, newToday()), "[updateUserData]Error trying to reset vxp count: ")
+			}
+		}
 	}
 	user, dbErr := repo.IncreaseMessageCount(m.Author.ID, mult)
 	if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
-		user, errM := userAndMemberToLocalUser(m.Author, m.Member)
-		if errM != nil && errM.Error() == "webhook" {
-			return
-		} else if errM != nil {
-			log.Error("[updateUserData]Unable to create user: " + errM.Error())
+		var err error
+		user, err = newUser(m)
+		if err != nil {
+			if err.Error() != "webhook" {
+				log.Error("[updateUserData]Error trying to add user in increase message count: " + err.Error())
+			}
 			return
 		}
-		dbErr := repo.AddUser(user)
-		if dbErr != nil {
-			log.Error("[updateUserData]Unable to store user in database: " + dbErr.Message)
-		}
-		return
 	} else if dbErr != nil {
 		log.Error("[updateUserData]Error trying to increase message count: " + dbErr.Message)
 		return
 	}
-	if !m.Author.Bot {
+	if !m.Author.Bot && config.Config.Vxp.Active {
 		rol, toDelete, ups := caluclateRolUpgrade(user.Vxp, mult)
 		if ups && m.Member != nil {
 			go setNewRoles(s, m.GuildID, m.Author.ID, rol, toDelete, m.Member.Roles)
 		}
 	}
 }
+
+func newUser(m *discordgo.MessageCreate) (models.User, error) {
+	user, errM := userAndMemberToLocalUser(m.Author, m.Member)
+	if errM != nil && errM.Error() == "webhook" {
+		return models.User{}, errors.New("webhook")
+	} else if errM != nil {
+		return models.User{}, errors.New("[newUser]Unable to create user: " + errM.Error())
+	}
+	dbErr := repo.AddUser(user)
+	if dbErr != nil {
+		return models.User{}, errors.New("[updateUserData]Unable to store user in database: " + dbErr.Message)
+	}
+	return user, nil
+}
+
 func fullDetailsCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	if !IsMod(m.Member.Roles, m.Author.ID) {
 		log.Warn("[fullDetailsCommand]User: " + m.Author.ID + " tried to use command fullDetails without permission.")

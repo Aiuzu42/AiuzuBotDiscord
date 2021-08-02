@@ -84,6 +84,7 @@ type VxpConfig struct {
 	Active          bool            `json:"active"`
 	IgnoredChannels []string        `json:"ignoredChannels"`
 	RolUpgrades     []RolUpgrade    `json:"rolUpgrades"`
+	MaxPerDay       int             `json:"maxPerDay"`
 }
 
 type VxpMultiplier struct {

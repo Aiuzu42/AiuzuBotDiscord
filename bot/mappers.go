@@ -29,6 +29,7 @@ func memberToLocalUser(m *discordgo.Member) (models.User, error) {
 		user.Server.AppendJoinDate(t)
 	}
 	user.Vxp = 0
+	user.DayVxp = 0
 	return user, nil
 }
 
@@ -36,7 +37,7 @@ func userAndMemberToLocalUser(u *discordgo.User, m *discordgo.Member) (models.Us
 	user := models.User{}
 	if u == nil {
 		log.Error("[userAndMemberToLocalUser]Mandatory data missing")
-		return user, errors.New("Mandatory data missing")
+		return user, errors.New("mandatory data missing")
 	}
 	if u.Discriminator == "0000" {
 		return user, errors.New("webhook")
@@ -55,5 +56,6 @@ func userAndMemberToLocalUser(u *discordgo.User, m *discordgo.Member) (models.Us
 		}
 	}
 	user.Vxp = 0
+	user.DayVxp = 0
 	return user, nil
 }

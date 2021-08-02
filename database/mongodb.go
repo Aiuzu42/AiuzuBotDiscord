@@ -94,8 +94,11 @@ func (m *MongoDB) IncreaseMessageCount(userID string, xp int) (models.User, *dBE
 			Key: "$inc", Value: bson.D{
 				{Key: "vxp", Value: xp},
 			},
+		}, {
+			Key: "$inc", Value: bson.D{
+				{Key: "vxpToday", Value: xp},
+			},
 		},
-
 		{
 			Key: "$set", Value: bson.D{
 				{Key: "server.lastMessage", Value: lastMessage},
@@ -268,6 +271,31 @@ func (m *MongoDB) SetVxp(userID string, vxp int) *dBError {
 		{
 			Key: "$set", Value: bson.D{
 				{Key: "vxp", Value: vxp},
+			},
+		},
+	}
+	ur, err := m.collection.UpdateOne(context.TODO(), query, updateQuery)
+	if err != nil {
+		return &dBError{Code: DatabaseErrorCode, Message: err.Error()}
+	}
+	if ur.MatchedCount == 0 {
+		return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+	}
+	return nil
+}
+
+func (m *MongoDB) ResetVxpDay(userID string, today int64) *dBError {
+	query := bson.M{
+		"userID": userID,
+	}
+	updateQuery := bson.D{
+		{
+			Key: "set", Value: bson.D{
+				{Key: "vxpToday", Value: 0},
+			},
+		}, {
+			Key: "set", Value: bson.D{
+				{Key: "dayVxp", Value: today},
 			},
 		},
 	}

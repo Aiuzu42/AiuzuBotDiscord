@@ -18,6 +18,8 @@ type User struct {
 	Sanctions    Sanction      `bson:"sanctions"`
 	Server       ServerDetails `bson:"server"`
 	Vxp          int           `bson:"vxp"`
+	DayVxp       int64         `bson:"dayVxp"`
+	VxpToday     int           `bson:"vxpToday"`
 }
 
 type Sanction struct {

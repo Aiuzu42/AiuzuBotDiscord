@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"strings"
+	"time"
 
 	"github.com/aiuzu42/AiuzuBotDiscord/database"
 )
@@ -66,22 +67,32 @@ func saySplit(st string) string {
 	return msg
 }
 
-func calculateVxp(roles []string, ch string) int {
+func calculateVxp(roles []string, ch string, dayVxp int64, vxpToday int) (int, bool) {
 	if !config.Config.Vxp.Active || findIfExists(ch, config.Config.Vxp.IgnoredChannels) {
-		return 0
+		return 0, false
 	}
 	max := 1
 	for _, m := range config.Config.Vxp.VxpMultipliers {
 		if findIfExists(m.Rol, roles) {
 			if m.Mult == 0 {
-				return 0
+				return 0, false
 			}
 			if m.Mult > max {
 				max = m.Mult
 			}
 		}
 	}
-	return max
+	now := newToday()
+	if dayVxp < now {
+		return max, true
+	}
+	if vxpToday >= config.Config.Vxp.MaxPerDay {
+		return 0, false
+	}
+	if vxpToday+max > config.Config.Vxp.MaxPerDay {
+		return config.Config.Vxp.MaxPerDay - vxpToday, false
+	}
+	return max, false
 }
 
 func caluclateRolUpgrade(vxp int, mult int) (string, []string, bool) {
@@ -109,4 +120,10 @@ func setupRolUpgrade(rol string, toDelete []string, roles []string) []string {
 		toReturn = append(toReturn, rol)
 	}
 	return toReturn
+}
+
+func newToday() int64 {
+	today := time.Now()
+	today = time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, config.Loc)
+	return today.Unix()
 }

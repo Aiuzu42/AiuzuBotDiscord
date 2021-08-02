@@ -131,3 +131,14 @@ func (m *Memory) SetVxp(userID string, vxp int) *dBError {
 	}
 	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
 }
+
+func (m *Memory) ResetVxpDay(userID string, today int64) *dBError {
+	for i := range m.db {
+		if m.db[i].UserID == userID {
+			m.db[i].VxpToday = 0
+			m.db[i].DayVxp = today
+			return nil
+		}
+	}
+	return &dBError{Code: UserNotFoundCode, Message: UserNotFoundMessage}
+}
