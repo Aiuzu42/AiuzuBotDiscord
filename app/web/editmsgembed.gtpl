@@ -16,6 +16,14 @@
     <body>
         <div>
             <form action="/editmsgembed" method="post">
+                <label for="channels">Choose a channel:</label>
+                <select name="channel" id="channel">
+                {{ range $key, $value := .C }}
+                    <option value="{{ $key }}">{{ $value }}</option>
+                {{end}}
+                </select>
+                <br>
+                <br>
                 Channel ID:<input type="text" name="channelid" readonly value="{{ .Emb.ChannelID}}">
                 <br>
                 <br>
@@ -38,6 +46,10 @@
                 <br>
                 <br>
                 <input type="submit" value="Send">
+                <br>
+                <br>
+                <label for="clone"> Clonar mensaje?</label>
+                <input type="checkbox" id="clone" name="clone" value="yes">
                 <br>
                 <br>
                 Fields

@@ -49,9 +49,13 @@ func (a App) GetChannels() (ContentWrapper, error) {
 
 func (a App) GetMessage(channelID string, messageID string) (ContentWrapper, error) {
 	m, err := a.b.ChannelMessage(channelID, messageID)
-	messageToEdit := ContentWrapper{}
 	if err != nil {
 		log.Error("[GetMessage]Error getting message: " + err.Error())
+		return ContentWrapper{}, err
+	}
+	messageToEdit, err := a.GetChannels()
+	if err != nil {
+		log.Error("[GetMessage]Error getting channels: " + err.Error())
 		return messageToEdit, err
 	}
 	messageToEdit.ChannelID = channelID

@@ -102,12 +102,24 @@ func editMsgEmbedController(w http.ResponseWriter, r *http.Request) {
 			errorEditMessageEmbedController(w, em, r.Form.Get("channelid"), r.Form.Get("messageid"), err.Error())
 			return
 		}
-		err = AppSession.EditMessageEmbed(r.Form.Get("channelid"), r.Form.Get("messageid"), em)
-		if err != nil {
-			errorEditMessageEmbedController(w, em, r.Form.Get("channelid"), r.Form.Get("messageid"), err.Error())
-			return
+		retMessage := Response{}
+		if r.Form.Get("clone") == "yes" {
+			em.ChannelID = r.Form.Get("channel")
+			err = AppSession.SendMessageEmbed(em)
+			if err != nil {
+				errorEditMessageEmbedController(w, em, r.Form.Get("channelid"), r.Form.Get("messageid"), err.Error())
+				return
+			}
+			retMessage.Message = "Mensaje enviado!"
+		} else {
+			err = AppSession.EditMessageEmbed(r.Form.Get("channelid"), r.Form.Get("messageid"), em)
+			if err != nil {
+				errorEditMessageEmbedController(w, em, r.Form.Get("channelid"), r.Form.Get("messageid"), err.Error())
+				return
+			}
+			retMessage.Message = "Mensaje editado!"
 		}
-		retMessage := Response{Message: "Mensaje editado!"}
+
 		t, _ := template.ParseFiles("web/succesmsg.gtpl")
 		t.Execute(w, retMessage)
 	}
