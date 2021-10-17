@@ -79,8 +79,12 @@ func (a App) GetMessage(channelID string, messageID string) (ContentWrapper, err
 		for i, field := range m.Embeds[0].Fields {
 			embedMessage.Fields[i] = Field{Inline: field.Inline, Name: field.Name, Value: field.Value}
 		}
-		embedMessage.Image = m.Embeds[0].Image.URL
-		embedMessage.Thumbnail = m.Embeds[0].Thumbnail.URL
+		if m.Embeds[0].Image != nil {
+			embedMessage.Image = m.Embeds[0].Image.URL
+		}
+		if m.Embeds[0].Thumbnail != nil {
+			embedMessage.Thumbnail = m.Embeds[0].Thumbnail.URL
+		}
 		messageToEdit.Emb = embedMessage
 	} else {
 		messageToEdit.Content = m.Content
