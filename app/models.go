@@ -39,6 +39,8 @@ type EmbedMessage struct {
 	Color     int
 	Title     string
 	Fields    []Field
+	Image     string
+	Thumbnail string
 }
 
 type Field struct {

@@ -23,6 +23,12 @@ func (a App) SendMessageEmbed(m EmbedMessage) error {
 	}
 	embed.Color = m.Color
 	embed.Description = m.Content
+	if m.Image != "" {
+		embed.Image = &discordgo.MessageEmbedImage{URL: m.Image}
+	}
+	if m.Thumbnail != "" {
+		embed.Thumbnail = &discordgo.MessageEmbedThumbnail{URL: m.Thumbnail}
+	}
 	fields := []*discordgo.MessageEmbedField{}
 	for _, f := range m.Fields {
 		fields = append(fields, &discordgo.MessageEmbedField{Name: f.Name, Value: f.Value, Inline: f.Inline})
@@ -73,6 +79,8 @@ func (a App) GetMessage(channelID string, messageID string) (ContentWrapper, err
 		for i, field := range m.Embeds[0].Fields {
 			embedMessage.Fields[i] = Field{Inline: field.Inline, Name: field.Name, Value: field.Value}
 		}
+		embedMessage.Image = m.Embeds[0].Image.URL
+		embedMessage.Thumbnail = m.Embeds[0].Thumbnail.URL
 		messageToEdit.Emb = embedMessage
 	} else {
 		messageToEdit.Content = m.Content

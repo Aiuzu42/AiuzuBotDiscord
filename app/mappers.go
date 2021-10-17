@@ -17,6 +17,12 @@ func parseFormToEmbed(form url.Values) EmbedMessage {
 	if d := form.Get("description"); d != "" {
 		em.Content = d
 	}
+	if i := form.Get("image"); i != "" {
+		em.Image = i
+	}
+	if t := form.Get("thumbnail"); t != "" {
+		em.Thumbnail = t
+	}
 	em.Color = ColorToInt(form.Get("color"))
 	for i := 0; i < 25; i++ {
 		t := form.Get("field" + strconv.Itoa(i) + "title")

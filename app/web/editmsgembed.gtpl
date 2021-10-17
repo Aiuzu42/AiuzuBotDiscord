@@ -45,6 +45,12 @@
                 <span style="color: red;">{{ .ErrorMsg }}</span>
                 <br>
                 <br>
+                Imagen:<input type="text" name="image" value="{{ .Emb.Image}}">
+                <br>
+                <br>
+                Thumbnail:<input type="text" name="thumbnail" value="{{ .Emb.Thumbnail}}">
+                <br>
+                <br>
                 <input type="submit" value="Send">
                 <br>
                 <br>
