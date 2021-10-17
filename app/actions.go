@@ -103,6 +103,12 @@ func (a App) EditMessageEmbed(channelID string, messageID string, msg EmbedMessa
 	for _, field := range msg.Fields {
 		e.Fields = append(e.Fields, &discordgo.MessageEmbedField{Name: field.Name, Value: field.Value, Inline: field.Inline})
 	}
+	if msg.Image != "" {
+		e.Image = &discordgo.MessageEmbedImage{URL: msg.Image}
+	}
+	if msg.Thumbnail != "" {
+		e.Thumbnail = &discordgo.MessageEmbedThumbnail{URL: msg.Thumbnail}
+	}
 	_, err := a.b.ChannelMessageEditEmbed(channelID, messageID, &e)
 	if err != nil {
 		log.Error("[EditMessageEmbed]Error editing message: " + err.Error())
