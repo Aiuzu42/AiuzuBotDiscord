@@ -3,6 +3,8 @@ package app
 import (
 	"html/template"
 	"net/http"
+	"strconv"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -35,12 +37,21 @@ func msgController(w http.ResponseWriter, r *http.Request) {
 			toChannel = r.Form.Get("channel")
 		}
 		m := Message{ChannelID: toChannel, Content: r.Form.Get("message")}
-		err := AppSession.SendMessage(m)
-		if err != nil {
-			errorPageController(w, ServerError{Message: err.Error(), Code: 500})
-			return
+		d := r.Form.Get("delay")
+		delay, convErr := strconv.Atoi(d)
+		rMsg := ""
+		if convErr == nil && delay > 0 {
+			go sendMessageDelayed(m, delay)
+			rMsg = "El mensaje se enviara en " + d + " minutos!"
+		} else {
+			err := AppSession.SendMessage(m)
+			if err != nil {
+				errorPageController(w, ServerError{Message: err.Error(), Code: 500})
+				return
+			}
+			rMsg = "Mensaje enviado!"
 		}
-		retMessage := Response{Message: "Mensaje enviado!"}
+		retMessage := Response{Message: rMsg}
 		t, _ := template.ParseFiles("web/succesmsg.gtpl")
 		t.Execute(w, retMessage)
 	}
@@ -152,12 +163,21 @@ func msgEmbedController(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		e.ChannelID = toChannel
-		err = AppSession.SendMessageEmbed(e)
-		if err != nil {
-			errorMessageEmbedController(w, e, err.Error())
-			return
+		d := r.Form.Get("delay")
+		delay, convErr := strconv.Atoi(d)
+		rMsg := ""
+		if convErr == nil && delay > 0 {
+			go sendMessageEmbedDelayed(e, delay)
+			rMsg = "El mensaje se enviara en " + d + " minutos!"
+		} else {
+			err = AppSession.SendMessageEmbed(e)
+			if err != nil {
+				errorMessageEmbedController(w, e, err.Error())
+				return
+			}
+			rMsg = "Mensaje enviado!"
 		}
-		retMessage := Response{Message: "Mensaje enviado!"}
+		retMessage := Response{Message: rMsg}
 		t, _ := template.ParseFiles("web/succesmsg.gtpl")
 		t.Execute(w, retMessage)
 	}
@@ -196,4 +216,20 @@ func errorEditMessageEmbedController(w http.ResponseWriter, e EmbedMessage, cID 
 	e.Fields = setFieldsSize(e.Fields)
 	channels.HexColor = ColorToHex(e.Color)
 	t.Execute(w, channels)
+}
+
+func sendMessageDelayed(m Message, min int) {
+	time.Sleep(time.Duration(min) * time.Minute)
+	err := AppSession.SendMessage(m)
+	if err != nil {
+		log.Error("[sendMessageDelayed]Error sending message: " + err.Error())
+	}
+}
+
+func sendMessageEmbedDelayed(em EmbedMessage, min int) {
+	time.Sleep(time.Duration(min) * time.Minute)
+	err := AppSession.SendMessageEmbed(em)
+	if err != nil {
+		log.Error("[sendMessageEmbedDelayed]Error sending message: " + err.Error())
+	}
 }

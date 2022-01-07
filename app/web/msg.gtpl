@@ -33,6 +33,9 @@
                 <p id="charNum">0 characters</p>
                 <br>
                 <br>
+                Delay in minutes:<input type="text" name="delay" value="0">
+                <br>
+                <br>
                 <input type="submit" value="Send">
             </form>
         </div>

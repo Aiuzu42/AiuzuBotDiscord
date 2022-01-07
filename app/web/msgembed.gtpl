@@ -48,6 +48,9 @@
                 Thumbnail:<input type="text" name="thumbnail" value="{{ .Emb.Thumbnail}}">
                 <br>
                 <br>
+                Delay in minutes:<input type="text" name="delay" value="0">
+                <br>
+                <br>
                 <input type="submit" value="Send">
                 <br>
                 <br>
