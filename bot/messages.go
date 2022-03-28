@@ -38,13 +38,6 @@ func createMessageEmbedUserFull(user models.User) *discordgo.MessageEmbed {
 	if user.FullName != "" {
 		fields = append(fields, &discordgo.MessageEmbedField{Name: "Identificador", Value: user.FullName})
 	}
-	if len(user.OldNames) > 0 {
-		chain := ""
-		for _, o := range user.OldNames {
-			chain = chain + o + " | "
-		}
-		fields = append(fields, &discordgo.MessageEmbedField{Name: "Otros nombres", Value: chain})
-	}
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "Numero de sanciones", Value: strconv.Itoa(user.Sanctions.Count)})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "N. de mensajes", Value: strconv.Itoa(user.Server.MessageCount)})
 	fields = append(fields, &discordgo.MessageEmbedField{Name: "VXP", Value: strconv.Itoa(user.Vxp)})
