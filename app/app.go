@@ -47,6 +47,7 @@ func StartApp() {
 	http.HandleFunc("/editmsg", editMsgController)
 	http.HandleFunc("/msgembed", msgEmbedController)
 	http.HandleFunc("/editmsgembed", editMsgEmbedController)
+	http.HandleFunc("/sendMsgDirect", sendMsgDirectController)
 	go func() {
 		err := http.ListenAndServe(":9090", nil)
 		if err != nil {

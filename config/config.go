@@ -100,16 +100,26 @@ type RolUpgrade struct {
 
 const (
 	filePath = "config.json"
+	apiUsrKey = "API_USR"
+	apiPassKey = "API_PASS"
 )
 
 // Config contains the bot configuration.
-var Config configuration
-var Loc *time.Location
+var (
+	Config configuration
+	Loc *time.Location
+	ApiUsr string
+	ApiPass string
+)
 
 //InitConfig should be only used to load config at the start of the program, it panics if the config cannot be loaded for any reason.
 func InitConfig() error {
 	var err error
 	Config, err = loadConfig()
+	if err != nil {
+		return err
+	}
+	err = loadEnvVariables()
 	if err != nil {
 		return err
 	}
@@ -127,6 +137,11 @@ func InitConfig() error {
 //ReloadConfig can be used to reload config at any point, if it fails to reload it keeps the old config and returns an error.
 func ReloadConfig() error {
 	localConfig, err := loadConfig()
+	if err != nil {
+		log.Error(err.Error())
+		return err
+	}
+	err = loadEnvVariables()
 	if err != nil {
 		log.Error(err.Error())
 		return err
@@ -152,4 +167,13 @@ func loadConfig() (configuration, error) {
 
 func setAppVariables() {
 	youtube.ApiUrl = Config.Youtube.Url
+}
+
+func loadEnvVariables() error {
+	ApiPass = os.Getenv(apiPassKey)
+	ApiUsr = os.Getenv(apiUsrKey)
+	if ApiUsr == "" || ApiPass == "" {
+		return errors.New("env variables not set")
+	}
+	return nil
 }

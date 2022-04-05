@@ -1,6 +1,8 @@
 package app
 
 import (
+	"encoding/json"
+	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -232,4 +234,38 @@ func sendMessageEmbedDelayed(em EmbedMessage, min int) {
 	if err != nil {
 		log.Error("[sendMessageEmbedDelayed]Error sending message: " + err.Error())
 	}
+}
+
+func sendMsgDirectController(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		j := struct {
+			Msg string `json:"message"`
+			ChId string `json:"channelId"`
+		}{}
+		u, p, ok := r.BasicAuth()
+		if !ok || !checkCredentials(u, p) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		err := json.NewDecoder(r.Body).Decode(&j)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		err = AppSession.SendMessage(Message{ChannelID: j.ChId, Content: j.Msg})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+func checkCredentials(user string, pass string) bool {
+	if user != config.ApiUsr || pass != config.ApiPass {
+		return false
+	}
+	return true
 }
