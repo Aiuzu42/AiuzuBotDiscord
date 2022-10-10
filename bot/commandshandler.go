@@ -2,11 +2,11 @@ package bot
 
 import (
 	"errors"
-	"fmt"
-	"github.com/aiuzu42/AiuzuBotDiscord/models"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/aiuzu42/AiuzuBotDiscord/models"
 
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	db "github.com/aiuzu42/AiuzuBotDiscord/database"
@@ -144,7 +144,6 @@ func updateUserData(s *discordgo.Session, m *discordgo.MessageCreate) {
 	mult := 0
 	if config.Config.Vxp.Active {
 		user, dbErr := repo.GetUser(m.Author.ID, "")
-		prevDay := user.DayVxp
 		if dbErr != nil && dbErr.Code == db.UserNotFoundCode {
 			var err error
 			user, err = newUser(m)
@@ -167,8 +166,6 @@ func updateUserData(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if dbErr != nil {
 				log.Error("[updateUserData]Error trying to reset vxp count: " + dbErr.Message)
 				sendMessage(s, config.Config.Channels.Logs, "[updateUserData]Error trying to reset vxp count: "+dbErr.Message, "[updateUserData]Error trying to reset vxp count: ")
-			} else {
-				sendMessage(s, config.Config.Channels.Logs, fmt.Sprintf("Day reset for: %s. Previous: %d. New: %d.", user.UserID, prevDay, newToday()), "[updateUserData]Error trying to reset vxp count: ")
 			}
 		}
 	}
