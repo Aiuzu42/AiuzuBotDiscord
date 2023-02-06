@@ -54,7 +54,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if strings.HasPrefix(m.Content, prefix) == true {
+	if strings.HasPrefix(m.Content, prefix) {
 		r := []rune(m.Content)
 		st := string(r[pLen:])
 		args := strings.Split(st, " ")
@@ -236,7 +236,10 @@ func reloadRolesCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	if err := config.ReloadConfig(); err != nil {
 		log.Error("[reloadRolesCommand]Error reloading config: " + err.Error())
-		s.ChannelMessageSend(m.ChannelID, "Hubo un error, no se pudo recargar la congfiguracion")
+		_, err = s.ChannelMessageSend(m.ChannelID, "Hubo un error, no se pudo recargar la congfiguracion")
+		if err != nil {
+			log.Error("[reloadRolesCommand]Unable to send error notification: " + err.Error())
+		}
 	}
 	LoadRoles()
 	err := s.MessageReactionAdd(m.ChannelID, m.ID, "✅")
@@ -333,7 +336,10 @@ func syncDatabase(s *discordgo.Session, m *discordgo.MessageCreate) {
 		sendMessage(s, m.ChannelID, "Hubo un error sincronizando", "[syncDatabase][0]")
 		return
 	}
-	s.ChannelMessageSend(m.ChannelID, "Iniciando sincronizacion...")
+	_, err = s.ChannelMessageSend(m.ChannelID, "Iniciando sincronizacion...")
+	if err != nil {
+		log.Error("[syncDatabase]Unable to send error sync database message: " + err.Error())
+	}
 	log.Warnf("[syncDatabase]Len: %v", len(members))
 	for _, member := range members {
 		if member.User == nil {

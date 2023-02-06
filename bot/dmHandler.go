@@ -17,7 +17,7 @@ func handleDM(s *discordgo.Session, m *discordgo.MessageCreate) {
 			log.Info("[handleDM]Unable to log DM to channel: " + config.Config.Channels.BotDM)
 		}
 	}
-	if strings.HasPrefix(m.Content, prefix) == true {
+	if strings.HasPrefix(m.Content, prefix) {
 		r := []rune(m.Content)
 		st := string(r[pLen:])
 		args := strings.Split(st, " ")

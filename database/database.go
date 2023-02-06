@@ -20,7 +20,7 @@ const (
 	WrongParametersMessage    = "Wrong parameters"
 )
 
-//Database defines the methods required for a struct to be a valid database connection.
+// Database defines the methods required for a struct to be a valid database connection.
 type Databse interface {
 	InitDB(c config.DBConnection) *dBError
 	GetUser(userID string, username string) (models.User, *dBError)

@@ -27,7 +27,7 @@ func StartBot(botName string, liveId string) error {
 	if liveId != "" {
 		getUrl = getUrl + "?liveId=" + liveId
 	}
-	for done == false && n < attempts {
+	for !done && n < attempts {
 		_, err = doGet(getUrl)
 		if err != nil {
 			log.Warnf("[startBot]Attempt: %d failed: %s", n, err.Error())
@@ -45,7 +45,7 @@ func StopBot(botName string) error {
 	n := 0
 	var err error
 	getUrl := ApiUrl + base + botName + "/stop"
-	for done == false && n < attempts {
+	for !done && n < attempts {
 		_, err = doGet(getUrl)
 		if err != nil {
 			log.Warnf("[startBot]Attempt: %d failed: %s", n, err.Error())

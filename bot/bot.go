@@ -13,10 +13,6 @@ var (
 	pLen   = 3
 )
 
-const (
-	defaultPrefix = "ai!"
-)
-
 // SelectRepository starts and instance of the repository of the selected type.
 // Accepted types "memory", "mongoDB"
 func SelectRepository(dbType string) error {

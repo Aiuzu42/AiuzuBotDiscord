@@ -2,11 +2,12 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"html/template"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/aiuzu42/AiuzuBotDiscord/config"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -17,7 +18,10 @@ func indexController(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error("[indexController]Cant parse template: " + err.Error())
 		}
-		t.Execute(w, nil)
+		err = t.Execute(w, nil)
+		if err != nil {
+			log.Error("[indexController]Cant execute template: " + err.Error())
+		}
 	}
 }
 
@@ -29,9 +33,15 @@ func msgController(w http.ResponseWriter, r *http.Request) {
 			errorPageController(w, ServerError{Message: err.Error(), Code: 500})
 			return
 		}
-		t.Execute(w, channels)
+		err = t.Execute(w, channels)
+		if err != nil {
+			log.Error("[msgController]Cant execute template: " + err.Error())
+		}
 	} else if r.Method == "POST" {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Error("[msgController]Cant parse form: " + err.Error())
+		}
 		var toChannel string
 		if r.Form.Get("channelid") != "" {
 			toChannel = r.Form.Get("channelid")
@@ -55,7 +65,10 @@ func msgController(w http.ResponseWriter, r *http.Request) {
 		}
 		retMessage := Response{Message: rMsg}
 		t, _ := template.ParseFiles("web/succesmsg.gtpl")
-		t.Execute(w, retMessage)
+		err = t.Execute(w, retMessage)
+		if err != nil {
+			log.Error("[msgController]Cant execute template2: " + err.Error())
+		}
 	}
 }
 
@@ -67,9 +80,15 @@ func editController(w http.ResponseWriter, r *http.Request) {
 			errorPageController(w, ServerError{Message: err.Error(), Code: 500})
 			return
 		}
-		t.Execute(w, channels)
+		err = t.Execute(w, channels)
+		if err != nil {
+			log.Error("[editController]Cant execute template: " + err.Error())
+		}
 	} else if r.Method == "POST" {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Error("[editController]Cant parse form: " + err.Error())
+		}
 		var toChannel string
 		if r.Form.Get("channelid") != "" {
 			toChannel = r.Form.Get("channelid")
@@ -88,29 +107,41 @@ func editController(w http.ResponseWriter, r *http.Request) {
 		} else {
 			t, _ = template.ParseFiles("web/editmsg.gtpl")
 		}
-		t.Execute(w, mw)
+		err = t.Execute(w, mw)
+		if err != nil {
+			log.Error("[editController]Cant execute template2: " + err.Error())
+		}
 	}
 }
 
 func editMsgController(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		r.ParseForm()
-		err := AppSession.EditMessage(r.Form.Get("channelid"), r.Form.Get("messageid"), r.Form.Get("message"))
+		err := r.ParseForm()
+		if err != nil {
+			log.Error("[editMsgController]Cant parse form: " + err.Error())
+		}
+		err = AppSession.EditMessage(r.Form.Get("channelid"), r.Form.Get("messageid"), r.Form.Get("message"))
 		if err != nil {
 			errorPageController(w, ServerError{Message: err.Error(), Code: 500})
 			return
 		}
 		retMessage := Response{Message: "Mensaje editado!"}
 		t, _ := template.ParseFiles("web/succesmsg.gtpl")
-		t.Execute(w, retMessage)
+		err = t.Execute(w, retMessage)
+		if err != nil {
+			log.Error("[editMsgController]Cant execute template: " + err.Error())
+		}
 	}
 }
 
 func editMsgEmbedController(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Error("[editMsgEmbedController]Cant parse form: " + err.Error())
+		}
 		em := parseFormToEmbed(r.Form)
-		err := em.Validate()
+		err = em.Validate()
 		if err != nil {
 			errorEditMessageEmbedController(w, em, r.Form.Get("channelid"), r.Form.Get("messageid"), err.Error())
 			return
@@ -134,7 +165,10 @@ func editMsgEmbedController(w http.ResponseWriter, r *http.Request) {
 		}
 
 		t, _ := template.ParseFiles("web/succesmsg.gtpl")
-		t.Execute(w, retMessage)
+		err = t.Execute(w, retMessage)
+		if err != nil {
+			log.Error("[editMsgEmbedController]Cant execute form: " + err.Error())
+		}
 	}
 }
 
@@ -149,9 +183,15 @@ func msgEmbedController(w http.ResponseWriter, r *http.Request) {
 			errorPageController(w, ServerError{Message: err.Error(), Code: 500})
 			return
 		}
-		t.Execute(w, channels)
+		err = t.Execute(w, channels)
+		if err != nil {
+			log.Error("[msgEmbedController]Cant execute template: " + err.Error())
+		}
 	} else if r.Method == "POST" {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Error("[msgEmbedController]Cant parse form: " + err.Error())
+		}
 		var toChannel string
 		if r.Form.Get("channelid") != "" {
 			toChannel = r.Form.Get("channelid")
@@ -159,7 +199,7 @@ func msgEmbedController(w http.ResponseWriter, r *http.Request) {
 			toChannel = r.Form.Get("channel")
 		}
 		e := parseFormToEmbed(r.Form)
-		err := e.Validate()
+		err = e.Validate()
 		if err != nil {
 			errorMessageEmbedController(w, e, err.Error())
 			return
@@ -181,13 +221,19 @@ func msgEmbedController(w http.ResponseWriter, r *http.Request) {
 		}
 		retMessage := Response{Message: rMsg}
 		t, _ := template.ParseFiles("web/succesmsg.gtpl")
-		t.Execute(w, retMessage)
+		err = t.Execute(w, retMessage)
+		if err != nil {
+			log.Error("[msgEmbedController]Cant execute template2: " + err.Error())
+		}
 	}
 }
 
 func errorPageController(w http.ResponseWriter, s ServerError) {
 	t, _ := template.ParseFiles("web/error.gtpl")
-	t.Execute(w, s)
+	err := t.Execute(w, s)
+	if err != nil {
+		log.Error("[errorPageController]Cant execute template2: " + err.Error())
+	}
 }
 
 func errorMessageEmbedController(w http.ResponseWriter, e EmbedMessage, errMsg string) {
@@ -201,7 +247,10 @@ func errorMessageEmbedController(w http.ResponseWriter, e EmbedMessage, errMsg s
 	channels.ErrorMsg = errMsg
 	e.Fields = setFieldsSize(e.Fields)
 	channels.HexColor = ColorToHex(e.Color)
-	t.Execute(w, channels)
+	err = t.Execute(w, channels)
+	if err != nil {
+		log.Error("[errorMessageEmbedController]Cant execute template2: " + err.Error())
+	}
 }
 
 func errorEditMessageEmbedController(w http.ResponseWriter, e EmbedMessage, cID string, mID string, errMsg string) {
@@ -217,7 +266,10 @@ func errorEditMessageEmbedController(w http.ResponseWriter, e EmbedMessage, cID 
 	channels.MessageID = mID
 	e.Fields = setFieldsSize(e.Fields)
 	channels.HexColor = ColorToHex(e.Color)
-	t.Execute(w, channels)
+	err = t.Execute(w, channels)
+	if err != nil {
+		log.Error("[errorEditMessageEmbedController]Cant execute template: " + err.Error())
+	}
 }
 
 func sendMessageDelayed(m Message, min int) {
@@ -239,7 +291,7 @@ func sendMessageEmbedDelayed(em EmbedMessage, min int) {
 func sendMsgDirectController(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		j := struct {
-			Msg string `json:"message"`
+			Msg  string `json:"message"`
 			ChId string `json:"channelId"`
 		}{}
 		u, p, ok := r.BasicAuth()
