@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+
 	"github.com/aiuzu42/AiuzuBotDiscord/config"
 	"github.com/bwmarrin/discordgo"
 )
@@ -82,7 +83,7 @@ func DowngradeToC(s *discordgo.Session, userID string, guildID string) error {
 	if !c {
 		newRoles = append(newRoles, config.Config.Roles.C)
 	}
-	err = s.GuildMemberEdit(guildID, userID, newRoles)
+	_, err = s.GuildMemberEdit(guildID, userID, &discordgo.GuildMemberParams{Roles: &newRoles})
 	if err != nil {
 		return fmt.Errorf("error editing roles for user %s", userID)
 	}

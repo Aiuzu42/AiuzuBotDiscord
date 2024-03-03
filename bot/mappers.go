@@ -12,7 +12,7 @@ func memberToLocalUser(m *discordgo.Member) (models.User, error) {
 	user := models.User{}
 	if m == nil || m.User == nil {
 		log.Error("[memberToLocalUser]Mandatory data missing")
-		return user, errors.New("Mandatory data missing")
+		return user, errors.New("mandatory data missing")
 	}
 	if m.User.Discriminator == "0000" {
 		return user, errors.New("webhook")
@@ -22,12 +22,7 @@ func memberToLocalUser(m *discordgo.Member) (models.User, error) {
 	user.FullName = fullName
 	user.Name = m.User.Username
 	user.Nickname = m.Nick
-	t, err := m.JoinedAt.Parse()
-	if err != nil {
-		log.Error("[memberToLocalUser]Unable to parse date info for " + m.User.ID)
-	} else {
-		user.Server.AppendJoinDate(t)
-	}
+	user.Server.AppendJoinDate(m.JoinedAt)
 	user.Vxp = 0
 	user.DayVxp = 0
 	return user, nil
@@ -48,12 +43,7 @@ func userAndMemberToLocalUser(u *discordgo.User, m *discordgo.Member) (models.Us
 	user.Name = u.Username
 	if m != nil {
 		user.Nickname = m.Nick
-		t, err := m.JoinedAt.Parse()
-		if err != nil {
-			log.Error("[userAndMemberToLocalUser]Unable to parse date info for " + m.User.ID)
-		} else {
-			user.Server.AppendJoinDate(t)
-		}
+		user.Server.AppendJoinDate(m.JoinedAt)
 	}
 	user.Vxp = 0
 	user.DayVxp = 0

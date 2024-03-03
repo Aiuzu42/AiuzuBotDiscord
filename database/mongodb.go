@@ -158,7 +158,7 @@ func (m *MongoDB) AddLeaveDate(userID string, date time.Time) *dBError {
 	findQuery := bson.M{
 		"userID": userID,
 	}
-	date.In(config.Loc)
+	date = date.In(config.Loc)
 	updateQuery := bson.D{
 		{
 			Key: "$push", Value: bson.D{

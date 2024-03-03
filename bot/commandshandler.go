@@ -819,7 +819,7 @@ func setVxpCommand(s *discordgo.Session, m *discordgo.MessageCreate, args []stri
 
 func setNewRoles(s *discordgo.Session, guildId string, userId string, rol string, toDelete []string, roles []string) {
 	newRoles := setupRolUpgrade(rol, toDelete, roles)
-	err := s.GuildMemberEdit(guildId, userId, newRoles)
+	_, err := s.GuildMemberEdit(guildId, userId, &discordgo.GuildMemberParams{Roles: &newRoles})
 	if err != nil {
 		log.Error("[setNewRoles]Unable to set Roles: " + err.Error())
 		sendMessage(s, config.Config.Channels.Logs, "Hubo un error actualizando un rol", "[setNewRoles][0]")

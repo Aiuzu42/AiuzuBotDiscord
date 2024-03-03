@@ -2,7 +2,7 @@ package youtube
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -74,7 +74,7 @@ func handleResponse(r *http.Response, e error) error {
 	} else if r.StatusCode >= 200 && r.StatusCode <= 299 {
 		return nil
 	} else {
-		bs, _ := ioutil.ReadAll(r.Body)
+		bs, _ := io.ReadAll(r.Body)
 		return errors.New("Error " + r.Status + " " + string(bs))
 	}
 }

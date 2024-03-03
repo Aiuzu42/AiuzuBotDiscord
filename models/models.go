@@ -63,11 +63,11 @@ func (u User) String() string {
 }
 
 func (s *ServerDetails) AppendJoinDate(date time.Time) {
-	date.In(config.Loc)
+	date = date.In(config.Loc)
 	s.JoinDates = append(s.JoinDates, date.Format(time.RFC822))
 }
 
 func (s *ServerDetails) AppendLeftDates(date time.Time) {
-	date.In(config.Loc)
+	date = date.In(config.Loc)
 	s.LeftDates = append(s.LeftDates, date.Format(time.RFC822))
 }
