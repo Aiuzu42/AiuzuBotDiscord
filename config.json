@@ -22,13 +22,15 @@
         "botDM" : "",
         "youtube" : "",
         "upgrades" : "",
-        "logs" : ""
+        "logs" : "",
+        "hackTrap": "",
+        "activity": ""
     },
     "roles" : {
         "q" : "",
         "a" : "",
         "b" : "",
-        "c" : "",
+        "c" : ""
     },
     "customSays" : [{
         "commandName" : "",
@@ -43,7 +45,9 @@
         "statusMsg" : ""
     },
     "messages" : {
-        "primerAviso" : ""
+        "primerAviso" : "",
+        "hackeadosDM": "",
+        "hackeadosReport": ""
     },
     "leaveNotification" : {
         "active" : false,

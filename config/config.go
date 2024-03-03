@@ -47,6 +47,8 @@ type ChannelsInfo struct {
 	Youtube     string   `json:"youtube"`
 	Upgrades    string   `json:"upgrades"`
 	Logs        string   `json:"logs"`
+	HackTrap    string   `json:"hackTrap"`
+	Activity    string   `json:"activity"`
 }
 
 type CustomSay struct {
@@ -71,7 +73,9 @@ type YoutubeData struct {
 }
 
 type BotMessages struct {
-	Primer string `json:"primerAviso"`
+	Primer          string `json:"primerAviso"`
+	HackeadosDM     string `json:"hackeadosDM"`
+	HackeadosReport string `json:"hackeadosReport"`
 }
 
 type LeaveNotificationData struct {

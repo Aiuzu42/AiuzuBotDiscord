@@ -23,6 +23,7 @@ const (
 	STOP_YT_BOT   = "Se esta intentando detener el bot de Youtube, favor de esperar..."
 	FULL_YT_URL   = "https://www.youtube.com/watch?v="
 	SHORT_YT_URL  = "https://youtu.be/"
+	USER_TOKEN    = "{user}"
 )
 
 var (
@@ -51,6 +52,10 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if findIfExists(m.ChannelID, config.Config.Channels.Suggestions) {
 		convertToSuggestion(s, m)
+		return
+	}
+	if m.ChannelID == config.Config.Channels.HackTrap {
+		hackTrapProcess(s, m)
 		return
 	}
 
@@ -829,4 +834,32 @@ func setNewRoles(s *discordgo.Session, guildId string, userId string, rol string
 	if err != nil {
 		log.Error("[setNewRoles]Unable send rol message: " + err.Error())
 	}
+}
+
+func hackTrapProcess(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if IsOwner(m.Author.ID) || IsMod(m.Member.Roles, m.Author.ID) || IsAdmin(m.Member.Roles, m.Author.ID) {
+		return
+	}
+	err := s.ChannelMessageDelete(m.ChannelID, m.ID)
+	if err != nil {
+		sendMessage(s, config.Config.Channels.Logs, "Hubo un error borrando un mensaje en canal de hackeados", "[hackTrapProcess][0]")
+	}
+
+	dmID, err := s.UserChannelCreate(m.Author.ID)
+	if err != nil {
+		sendMessage(s, config.Config.Channels.Logs, "Hubo un error creando un canal para dm", "[hackTrapProcess][1]")
+	} else {
+		sendMessage(s, dmID.ID, config.Config.Messages.HackeadosDM, "[hackTrapProcess][2]")
+	}
+
+	err = s.GuildMemberDelete(m.GuildID, m.Author.ID)
+	if err != nil {
+		sendMessage(s, config.Config.Channels.Logs, "Hubo un error borrando un baneando al usuario "+m.Author.ID+" en canal de hackeados", "[hackTrapProcess][3]")
+	} else {
+		sendMessage(s, config.Config.Channels.Activity, replaceUser(config.Config.Messages.HackeadosReport, m.Author.Username), "[hackTrapProcess][4]")
+	}
+}
+
+func replaceUser(msg, usr string) string {
+	return strings.ReplaceAll(msg, USER_TOKEN, usr)
 }
